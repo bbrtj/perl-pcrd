@@ -1,0 +1,5 @@
+[PerlTidy]
+select = **/*.{pl,pm,t}
+ignore = PCRD*/**/*.{pl,pm,t}
+argv = -pro=./.perltidyrc --character-encoding=none
+
