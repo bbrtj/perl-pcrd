@@ -197,13 +197,15 @@ sub set_charge_threshold
 	foreach my $file (@{$self->{charge_threshold}{stop_file_cache}}) {
 		PCRD::Util::spew($file, $vals[1]);
 	}
+
+	return $self->get_charge_threshold;
 }
 
-sub features
+sub _build_features
 {
 	my ($self) = @_;
 
-	my $features = $self->SUPER::features;
+	my $features = $self->SUPER::_build_features;
 
 	$features->{capacity}{info} = <<"	INFO";
 	Battery capacity is found in a file located under /sys directory.

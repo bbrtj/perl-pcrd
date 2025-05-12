@@ -4,6 +4,8 @@ use v5.14;
 use warnings;
 use Scalar::Util qw(weaken);
 
+use PCRD::Feature;
+
 use constant name => undef;
 
 sub new
@@ -31,23 +33,39 @@ sub features
 {
 	my ($self) = @_;
 
+	return $self->{features} //= do {
+		my $features = $self->_build_features;
+
+		+{
+			map { $_ => PCRD::Feature->new($self, $_, $features->{$_}) }
+				keys %$features
+		};
+	};
+}
+
+sub _build_features
+{
 	# return features provided by this module
 	...;
+}
+
+sub feature
+{
+	my ($self, $name) = @_;
+
+	return $self->features->{$name};
 }
 
 sub check
 {
 	my ($self) = @_;
 
-	my $name = $self->name;
+	my $module_name = $self->name;
 	my $features = $self->features;
 	my %check_hash;
-	foreach my $feature (keys %$features) {
-		my $check_method = "check_$feature";
-		$check_hash{"$name.$feature"} = {
-			check => sub { $self->$check_method },
-			error => join("\n", grep { defined } @{$features->{$feature}}{qw(desc info)}),
-		};
+
+	foreach my $feature_name (keys %$features) {
+		$check_hash{"$module_name.$feature_name"} = $features->{$feature_name};
 	}
 
 	return \%check_hash;

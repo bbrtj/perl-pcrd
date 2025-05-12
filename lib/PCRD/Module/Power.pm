@@ -20,7 +20,7 @@ sub check_charge_threshold { ... }
 sub get_charge_threshold { ... }
 sub set_charge_threshold { ... }
 
-sub features
+sub _build_features
 {
 	return {
 		capacity => {

@@ -1,0 +1,161 @@
+package PCRDTest;
+
+use v5.14;
+use warnings;
+use File::Temp qw(tempfile tempdir);
+
+use Data::Dumper;
+use Test2::Tools::Basic;
+use Test2::Tools::Compare;
+use IO::Socket::UNIX;
+use IO::Async::Stream;
+use PCRD;
+use PCRD::Config::Memory;
+
+sub new
+{
+	my ($class) = @_;
+	my $dir = tempdir('pcrdXXXX', CLEANUP => 1);
+
+	return bless { dir => $dir }, $class;
+}
+
+sub _update
+{
+	my ($self, $fh, $value) = @_;
+
+	local $| = 1;
+	print {$fh} $value;
+	seek $fh, 0, 0;
+}
+
+sub prepare_tmpfile
+{
+	my ($self, $name, $contents) = @_;
+	my ($fh, $file) = tempfile("${name}XXXX", DIR => $self->{dir});
+	$self->_update($fh, $contents);
+
+	$self->{files}{$name} = {
+		fh => $fh,
+		file => $file,
+	};
+
+	return $file;
+}
+
+sub update
+{
+	my ($self, $name, $contents) = @_;
+	$self->_update($self->{files}{$name}{fh}, $contents);
+}
+
+sub create_daemon
+{
+	my ($self, %config) = @_;
+	return if $self->{pcrd};
+
+	(undef, $config{socket}) = tempfile('sockXXXX', DIR => $self->{dir}, OPEN => 0);
+
+	$self->{pcrd} = PCRD->new(
+		config => PCRD::Config::Memory->instance(
+			name => 'mock',
+			values => \%config,
+		)
+	);
+
+	# early register socket, so that it will be created for the client
+	$self->{pcrd}->register_listener;
+	$self->_create_client($config{socket});
+
+	return $self;
+}
+
+sub _create_client
+{
+	my ($self, $socket_file) = @_;
+
+	my $socket = IO::Socket::UNIX->new(
+		Type => SOCK_STREAM,
+		Peer => $socket_file,
+	) or die "Cannot create test socket - $IO::Socket::errstr\n";
+
+	$self->{msgs}{got} = [];
+	$self->{msgs}{expected} = [];
+
+	$self->{client} = IO::Async::Stream->new(
+		handle => $socket,
+		on_read => sub {
+			my ($stream, $buffref, $eof) = @_;
+
+			while ($$buffref =~ s/^(.*)\n//) {
+				my ($status, $data) = split /\t/, $1;
+				push @{$self->{msgs}{got}}, [$status eq 'ok', $data];
+			}
+
+			return 0;
+		}
+	);
+
+	$self->loop->add($self->{client});
+}
+
+sub test_message
+{
+	my ($self, $args, $expected, $name_extra) = @_;
+
+	my $name = join('.', @{$args}[0 .. 2]) . ' ok';
+	$name .= " ($name_extra)" if defined $name_extra;
+
+	$self->{client}->write(join("\t", @$args) . "\n");
+	push @{$self->{msgs}{expected}}, [$expected, $name];
+}
+
+sub run_tests
+{
+	my ($self) = @_;
+
+	for my $i (keys @{$self->{msgs}{got}}) {
+		my ($success, $got) = @{$self->{msgs}{got}[$i]};
+		my ($expected, $message) = @{$self->{msgs}{expected}[$i]};
+
+		ok($success, 'response message was success');
+		if (ref $expected eq 'CODE') {
+			local $_ = $got;
+			ok($expected->(), $message);
+		}
+		else {
+			is($got, $expected, $message);
+		}
+	}
+
+	my $sent = @{$self->{msgs}{expected}};
+	my $got = @{$self->{msgs}{got}};
+	if ($sent != $got) {
+		fail("Sent $sent messages but only got $got back");
+		diag 'No responses for: ' . Dumper(@{$self->{msgs}{expected}}[$got .. $sent - 1]);
+	}
+}
+
+sub start
+{
+	my ($self) = @_;
+
+	$self->{pcrd}->start;
+}
+
+sub stop
+{
+	my ($self) = @_;
+
+	$self->{pcrd}->stop;
+}
+
+sub loop
+{
+	my ($self) = @_;
+
+	$self->{pcrd}{loop};
+}
+
+1;
+

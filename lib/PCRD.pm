@@ -2,6 +2,8 @@ package PCRD;
 
 use v5.14;
 use warnings;
+use IO::Socket::UNIX;
+use IO::Async::Listener;
 use IO::Async::Loop;
 
 use PCRD::Config;
@@ -9,6 +11,12 @@ use PCRD::Util;
 use PCRD::Module;
 
 use constant MODULES_CONFIG => ['modules', [qw(Power)]];
+use constant SOCKET_CONFIG => ['socket', '/var/run/pcrd.sock'];
+
+# socket constants (vars for easier interpolation)
+my $ps = "\t"; # protocol separator
+my $ok = 'ok'; # success
+my $err = 'err'; # error
 
 sub new
 {
@@ -64,13 +72,13 @@ sub check_modules
 	foreach my $item (sort keys %checklist) {
 		print "Checking '$item'... ";
 
-		my $this_success = $checklist{$item}{check}->();
+		my $this_success = $checklist{$item}->check;
 		$success &&= $this_success;
 
 		if (!$this_success) {
 			say 'error!';
 			say "'$item' will not work properly with current configuration.";
-			say $checklist{$item}{error};
+			say $checklist{$item}->error;
 		}
 		else {
 			say 'ok';
@@ -87,6 +95,78 @@ sub module
 	return $self->{modules}{$name} // die "No such module: $name";
 }
 
+sub handle_message
+{
+	my ($self, $stream, $buffref, $eof) = @_;
+
+	while ($$buffref =~ s/^(.*)\n//) {
+		my ($module, $feature_name, $action, $value) = split /$ps/, $1, 4;
+
+		if (!$self->{modules}{$module}) {
+			$stream->write("${err}${ps}no module $module\n");
+			return;
+		}
+
+		my $feature = $self->{modules}{$module}->feature($feature_name);
+		if (!$feature) {
+			$stream->write("${err}${ps}module $module does not have feature $feature_name\n");
+			return;
+		}
+
+		if (!$feature->provides($action)) {
+			$stream->write("${err}${ps}feature $feature_name from module $module does not provide action $action\n");
+			return;
+		}
+
+		my $result;
+		my $ex = PCRD::Util::try {
+			$result = $feature->execute($action, $value);
+		};
+
+		if ($ex) {
+			$ex =~ s/\n//g;
+			$stream->write("${err}${ps}$ex\n");
+			return;
+		}
+
+		$stream->write("${ok}${ps}$result\n");
+	}
+}
+
+sub register_listener
+{
+	my ($self) = @_;
+	return if $self->{listener};
+
+	my $server = IO::Socket::UNIX->new(
+		Type => SOCK_STREAM,
+		Local => $self->{config}->get_value(@{(SOCKET_CONFIG)}),
+		Listen => 1,
+	) or die "Cannot create server socket - $IO::Socket::errstr\n";
+
+	my $listener = IO::Async::Listener->new(
+		on_stream => sub {
+			my (undef, $stream) = @_;
+
+			$stream->configure(
+				on_read => sub {
+					$self->handle_message(@_);
+					return 0;
+				}
+			);
+
+			$self->{loop}->add($stream);
+		}
+	);
+
+	$self->{loop}->add($listener);
+	$listener->listen(
+		handle => $server,
+	);
+
+	$self->{listener} = $listener;
+}
+
 sub start
 {
 	my ($self) = @_;
@@ -94,11 +174,11 @@ sub start
 	die "Your system is not capable of running all the specified modules\n"
 		unless $self->check_modules;
 
-	# TODO: set up external signal handling
 	foreach my $module (keys %{$self->{modules}}) {
 		$self->{modules}{$module}->init;
 	}
 
+	$self->register_listener;
 	$self->{loop}->run;
 }
 

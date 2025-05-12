@@ -31,5 +31,15 @@ sub slurp_1
 	return $value;
 }
 
+sub try (&)
+{
+	my ($sub) = @_;
+
+	local $@;
+	my $ok = eval { $sub->(); 1 };
+
+	return $ok ? undef : $@;
+}
+
 1;
 
