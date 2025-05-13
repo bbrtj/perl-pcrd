@@ -17,7 +17,7 @@ sub new
 	my ($class) = @_;
 	my $dir = tempdir('pcrdXXXX', CLEANUP => 1);
 
-	return bless { dir => $dir }, $class;
+	return bless {dir => $dir}, $class;
 }
 
 sub _update

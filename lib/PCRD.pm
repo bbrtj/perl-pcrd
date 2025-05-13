@@ -20,9 +20,9 @@ use constant SOCKET_GROUP_CONFIG => ['socket_permissions', $GID];
 use constant SOCKET_PERMISSIONS_CONFIG => ['socket_permissions', '0660'];
 
 # socket constants (vars for easier interpolation)
-my $ps = "\t"; # protocol separator
-my $ok = 'ok'; # success
-my $err = 'err'; # error
+my $ps = "\t";    # protocol separator
+my $ok = 'ok';    # success
+my $err = 'err';    # error
 
 sub new
 {
@@ -51,12 +51,12 @@ sub load_modules
 			next;
 		}
 
-		push @modules, $loaded
+		push @modules, $loaded;
 	}
 
 	if (@loading_errors) {
 		local $" = "\n";
-		die "Some pcrd modules could not be loaded:\n@loading_errors\n"
+		die "Some pcrd modules could not be loaded:\n@loading_errors\n";
 	}
 
 	$self->{modules} = {

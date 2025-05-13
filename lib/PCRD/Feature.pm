@@ -13,7 +13,7 @@ sub new
 		name => $name,
 		desc => $init_hash->{desc},
 		info => $init_hash->{info},
-		modes => { map { $_ => 1 } split //, $init_hash->{mode} },
+		modes => {map { $_ => 1 } split //, $init_hash->{mode}},
 	);
 
 	my $self = bless \%args, $class;

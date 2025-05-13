@@ -12,9 +12,10 @@ use constant CAPACITY_CONFIG => ['Power.capacity.file', '/sys/class/power_supply
 use constant STATUS_CONFIG => ['Power.status.file', '/sys/class/power_supply/BAT*/status'];
 use constant BATTERY_LIFE_CONFIG => ['Power.battery_life.file', '/sys/class/power_supply/BAT*/energy_now'];
 use constant BATTERY_LIFE_PROBE_INTERVAL_CONFIG => ['Power.battery_life.probe_interval', 10];
-use constant CHARGE_START_THRESHOLD_CONFIG => ['Power.charge_threshold.start_file', '/sys/class/power_supply/BAT*/charge_start_threshold'];
-use constant CHARGE_STOP_THRESHOLD_CONFIG => ['Power.charge_threshold.stop_file', '/sys/class/power_supply/BAT*/charge_stop_threshold'];
-
+use constant CHARGE_START_THRESHOLD_CONFIG =>
+	['Power.charge_threshold.start_file', '/sys/class/power_supply/BAT*/charge_start_threshold'];
+use constant CHARGE_STOP_THRESHOLD_CONFIG =>
+	['Power.charge_threshold.stop_file', '/sys/class/power_supply/BAT*/charge_stop_threshold'];
 
 sub new
 {

@@ -52,7 +52,7 @@ my $timer = IO::Async::Timer::Periodic->new(
 		$pcrd->test_message(['Power', 'charge_threshold', 'r'], "$start_thr-$stop_thr", "tick $test_ticks");
 
 		if ($test_ticks > 6) {
-			$pcrd->test_message(['Power', 'battery_life', 'r'], sub { $_ > 20 && $_ < 40 } , "tick $test_ticks");
+			$pcrd->test_message(['Power', 'battery_life', 'r'], sub { $_ > 20 && $_ < 40 }, "tick $test_ticks");
 		}
 	},
 )->start;
