@@ -50,7 +50,7 @@ sub check_capacity
 	my ($self) = @_;
 
 	my @files = glob $self->{capacity}{file};
-	return @files > 0;
+	return @files > 0 && PCRD::Util::all { -r } @files;
 }
 
 sub setup_capacity
@@ -82,7 +82,7 @@ sub check_status
 	my ($self) = @_;
 
 	my @files = glob $self->{status}{file};
-	return @files > 0;
+	return @files > 0 && PCRD::Util::all { -r } @files;
 }
 
 sub setup_status
@@ -113,7 +113,7 @@ sub check_battery_life
 	my ($self) = @_;
 
 	my @files = glob $self->{battery_life}{file};
-	return @files > 0;
+	return @files > 0 && PCRD::Util::all { -r } @files;
 }
 
 sub setup_battery_life
@@ -161,7 +161,7 @@ sub check_charge_threshold
 
 	my @start_files = glob $self->{charge_threshold}{start_file};
 	my @stop_files = glob $self->{charge_threshold}{stop_file};
-	return @start_files > 0 && @stop_files > 0;
+	return @start_files > 0 && @stop_files > 0 && PCRD::Util::all { -r && -w } @start_files, @stop_files;
 }
 
 sub setup_charge_threshold

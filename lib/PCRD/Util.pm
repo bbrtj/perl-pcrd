@@ -41,5 +41,12 @@ sub try (&)
 	return $ok ? undef : $@;
 }
 
+sub all (&@)
+{
+	my $sub = shift;
+	$sub->($_) || return 0 for @_;
+	return 1;
+}
+
 1;
 
