@@ -2,9 +2,12 @@ package PCRD;
 
 use v5.14;
 use warnings;
+use autodie;
 use IO::Socket::UNIX;
 use IO::Async::Listener;
 use IO::Async::Loop;
+use Scalar::Util qw(looks_like_number);
+use English;
 
 use PCRD::Config;
 use PCRD::Util;
@@ -12,6 +15,9 @@ use PCRD::Module;
 
 use constant MODULES_CONFIG => ['modules', [qw(Power)]];
 use constant SOCKET_CONFIG => ['socket', '/var/run/pcrd.sock'];
+use constant SOCKET_USER_CONFIG => ['socket_permissions', $UID];
+use constant SOCKET_GROUP_CONFIG => ['socket_permissions', $GID];
+use constant SOCKET_PERMISSIONS_CONFIG => ['socket_permissions', '0660'];
 
 # socket constants (vars for easier interpolation)
 my $ps = "\t"; # protocol separator
@@ -138,11 +144,25 @@ sub register_listener
 	my ($self) = @_;
 	return if $self->{listener};
 
+	my $socket_file = $self->{config}->get_value(@{(SOCKET_CONFIG)});
 	my $server = IO::Socket::UNIX->new(
 		Type => SOCK_STREAM,
-		Local => $self->{config}->get_value(@{(SOCKET_CONFIG)}),
+		Local => $socket_file,
 		Listen => 1,
 	) or die "Cannot create server socket - $IO::Socket::errstr\n";
+
+	my $uid = $self->{config}->get_value(@{(SOCKET_USER_CONFIG)});
+	$uid = getpwnam($uid)
+		unless looks_like_number($uid);
+
+	my ($gid) = split / /, $self->{config}->get_value(@{(SOCKET_GROUP_CONFIG)});
+	$gid = getgrnam($gid)
+		unless looks_like_number($gid);
+
+	my $perm = oct($self->{config}->get_value(@{(SOCKET_PERMISSIONS_CONFIG)}));
+
+	chown $uid, $gid, $socket_file;
+	chmod $perm, $socket_file;
 
 	my $listener = IO::Async::Listener->new(
 		on_stream => sub {
