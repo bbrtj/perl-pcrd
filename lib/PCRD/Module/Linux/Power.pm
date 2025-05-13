@@ -8,14 +8,14 @@ use IO::Async::Timer::Periodic;
 
 use parent 'PCRD::Module::Power';
 
-use constant CAPACITY_CONFIG => ['Power.capacity.file', '/sys/class/power_supply/BAT*/capacity'];
-use constant STATUS_CONFIG => ['Power.status.file', '/sys/class/power_supply/BAT*/status'];
-use constant BATTERY_LIFE_CONFIG => ['Power.battery_life.file', '/sys/class/power_supply/BAT*/energy_now'];
+use constant CAPACITY_CONFIG => ['Power.capacity.pattern', '/sys/class/power_supply/BAT*/capacity'];
+use constant STATUS_CONFIG => ['Power.status.pattern', '/sys/class/power_supply/BAT*/status'];
+use constant BATTERY_LIFE_CONFIG => ['Power.battery_life.pattern', '/sys/class/power_supply/BAT*/energy_now'];
 use constant BATTERY_LIFE_PROBE_INTERVAL_CONFIG => ['Power.battery_life.probe_interval', 10];
 use constant CHARGE_START_THRESHOLD_CONFIG =>
-	['Power.charge_threshold.start_file', '/sys/class/power_supply/BAT*/charge_start_threshold'];
+	['Power.charge_threshold.start_pattern', '/sys/class/power_supply/BAT*/charge_start_threshold'];
 use constant CHARGE_STOP_THRESHOLD_CONFIG =>
-	['Power.charge_threshold.stop_file', '/sys/class/power_supply/BAT*/charge_stop_threshold'];
+	['Power.charge_threshold.stop_pattern', '/sys/class/power_supply/BAT*/charge_stop_threshold'];
 
 sub new
 {
@@ -23,12 +23,12 @@ sub new
 	my $self = $class->SUPER::new(%args);
 	my $c = $self->{config};
 
-	$self->{capacity}{file} = $c->get_value(@{(CAPACITY_CONFIG)});
-	$self->{status}{file} = $c->get_value(@{(STATUS_CONFIG)});
-	$self->{battery_life}{file} = $c->get_value(@{(BATTERY_LIFE_CONFIG)});
+	$self->{capacity}{pattern} = $c->get_value(@{(CAPACITY_CONFIG)});
+	$self->{status}{pattern} = $c->get_value(@{(STATUS_CONFIG)});
+	$self->{battery_life}{pattern} = $c->get_value(@{(BATTERY_LIFE_CONFIG)});
 	$self->{battery_life}{probe_interval} = $c->get_value(@{(BATTERY_LIFE_PROBE_INTERVAL_CONFIG)});
-	$self->{charge_threshold}{start_file} = $c->get_value(@{(CHARGE_START_THRESHOLD_CONFIG)});
-	$self->{charge_threshold}{stop_file} = $c->get_value(@{(CHARGE_STOP_THRESHOLD_CONFIG)});
+	$self->{charge_threshold}{start_pattern} = $c->get_value(@{(CHARGE_START_THRESHOLD_CONFIG)});
+	$self->{charge_threshold}{stop_pattern} = $c->get_value(@{(CHARGE_STOP_THRESHOLD_CONFIG)});
 
 	return $self;
 }
@@ -49,7 +49,7 @@ sub check_capacity
 {
 	my ($self) = @_;
 
-	my @files = glob $self->{capacity}{file};
+	my @files = glob $self->{capacity}{pattern};
 	return @files > 0 && PCRD::Util::all { -r } @files;
 }
 
@@ -57,7 +57,7 @@ sub setup_capacity
 {
 	my ($self) = @_;
 
-	$self->{capacity}{file_cache} = [glob $self->{capacity}{file}];
+	$self->{capacity}{file_cache} = [glob $self->{capacity}{pattern}];
 }
 
 sub get_capacity
@@ -81,7 +81,7 @@ sub check_status
 {
 	my ($self) = @_;
 
-	my @files = glob $self->{status}{file};
+	my @files = glob $self->{status}{pattern};
 	return @files > 0 && PCRD::Util::all { -r } @files;
 }
 
@@ -89,7 +89,7 @@ sub setup_status
 {
 	my ($self) = @_;
 
-	$self->{status}{file_cache} = [glob $self->{status}{file}];
+	$self->{status}{file_cache} = [glob $self->{status}{pattern}];
 }
 
 sub get_status
@@ -112,7 +112,7 @@ sub check_battery_life
 {
 	my ($self) = @_;
 
-	my @files = glob $self->{battery_life}{file};
+	my @files = glob $self->{battery_life}{pattern};
 	return @files > 0 && PCRD::Util::all { -r } @files;
 }
 
@@ -120,7 +120,7 @@ sub setup_battery_life
 {
 	my ($self) = @_;
 
-	my @files = glob $self->{battery_life}{file};
+	my @files = glob $self->{battery_life}{pattern};
 	$self->{battery_life}{history} //= [];
 
 	my $timer = IO::Async::Timer::Periodic->new(
@@ -159,8 +159,8 @@ sub check_charge_threshold
 {
 	my ($self) = @_;
 
-	my @start_files = glob $self->{charge_threshold}{start_file};
-	my @stop_files = glob $self->{charge_threshold}{stop_file};
+	my @start_files = glob $self->{charge_threshold}{start_pattern};
+	my @stop_files = glob $self->{charge_threshold}{stop_pattern};
 	return @start_files > 0 && @stop_files > 0 && PCRD::Util::all { -r && -w } @start_files, @stop_files;
 }
 
@@ -168,8 +168,8 @@ sub setup_charge_threshold
 {
 	my ($self) = @_;
 
-	$self->{charge_threshold}{start_file_cache} = [glob $self->{charge_threshold}{start_file}];
-	$self->{charge_threshold}{stop_file_cache} = [glob $self->{charge_threshold}{stop_file}];
+	$self->{charge_threshold}{start_file_cache} = [glob $self->{charge_threshold}{start_pattern}];
+	$self->{charge_threshold}{stop_file_cache} = [glob $self->{charge_threshold}{stop_pattern}];
 }
 
 sub get_charge_threshold
@@ -210,26 +210,26 @@ sub _build_features
 
 	$features->{capacity}{info} = <<"	INFO";
 	Battery capacity is found in a file located under /sys directory.
-	Currently, pcrd searches for it in $self->{capacity}{file}. It may be
+	Currently, pcrd searches for it in $self->{capacity}{pattern}. It may be
 	modified by changing '@{[CAPACITY_CONFIG->[0]]}' configuration value.
 	INFO
 
 	$features->{status}{info} = <<"	INFO";
 	Battery status is found in a file located under /sys directory.
-	Currently, pcrd searches for it in $self->{status}{file}. It may be
+	Currently, pcrd searches for it in $self->{status}{pattern}. It may be
 	modified by changing '@{[STATUS_CONFIG->[0]]}' configuration value.
 	INFO
 
 	$features->{battery_life}{info} = <<"	INFO";
 	Battery life can be calculated a file located under /sys directory.
-	Currently, pcrd searches for it in $self->{battery_life}{file}. It may be
+	Currently, pcrd searches for it in $self->{battery_life}{pattern}. It may be
 	modified by changing '@{[BATTERY_LIFE_CONFIG->[0]]}' configuration value.
 	INFO
 
 	$features->{charge_threshold}{info} = <<"	INFO";
 	Charge thresholds are found in files located under /sys directory.
-	Currently, pcrd searches for them in $self->{charge_threshold}{start_file}
-	and $self->{charge_threshold}{stop_file}. They may be modified by changing
+	Currently, pcrd searches for them in $self->{charge_threshold}{start_pattern}
+	and $self->{charge_threshold}{stop_pattern}. They may be modified by changing
 	'@{[CHARGE_START_THRESHOLD_CONFIG->[0]]}' and '@{[CHARGE_STOP_THRESHOLD_CONFIG->[0]]}'
 	configuration values, respectively.
 	INFO
