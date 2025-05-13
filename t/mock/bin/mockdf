@@ -1,0 +1,15 @@
+#!/usr/bin/env perl
+
+print readline DATA;
+
+__END__
+Filesystem               1K-blocks     Used Available Use% Mounted on
+tmpfs                        32768     1520     31248   5% /run
+devtmpfs                      8192        0      8192   0% /dev
+/dev/mapper/slacker-root  86117064 25664304  56032360  32% /
+tmpfs                      8131728        0   8131728   0% /dev/shm
+cgroup_root                   8192        0      8192   0% /sys/fs/cgroup
+/dev/mapper/slacker-home 387848580 44491256 323582656  13% /home
+tmpfs                      1626344      828   1625516   1% /run/user/1000
+total                    483772868 70157908 389419892  16% -
+

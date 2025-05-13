@@ -13,7 +13,7 @@ use PCRD::Config;
 use PCRD::Util;
 use PCRD::Module;
 
-use constant MODULES_CONFIG => ['modules', [qw(Power)]];
+use constant MODULES_CONFIG => ['modules', [qw(Power Performance)]];
 use constant SOCKET_CONFIG => ['socket', '/var/run/pcrd.sock'];
 use constant SOCKET_USER_CONFIG => ['socket_permissions', $UID];
 use constant SOCKET_GROUP_CONFIG => ['socket_permissions', $GID];

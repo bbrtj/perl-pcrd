@@ -3,6 +3,7 @@ package PCRDTest;
 use v5.14;
 use warnings;
 use File::Temp qw(tempfile tempdir);
+use Scalar::Util qw(looks_like_number);
 
 use Data::Dumper;
 use Test2::Tools::Basic;
@@ -121,9 +122,14 @@ sub run_tests
 		ok($success, 'response message was success');
 		if (ref $expected eq 'CODE') {
 			local $_ = $got;
-			ok($expected->(), $message);
+			ok($expected->(), "$message (got $got)");
 		}
 		else {
+			if (looks_like_number($expected) && int($expected) != $expected) {
+				$expected = int($expected * 1e6) / 1e6;
+				$got = int($got * 1e6) / 1e6;
+			}
+
 			is($got, $expected, $message);
 		}
 	}

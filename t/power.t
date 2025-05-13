@@ -3,7 +3,6 @@ use File::Temp qw(tempfile);
 use IO::Async::Timer::Periodic;
 
 use lib 't/lib';
-
 use PCRDTest;
 
 ################################################################################
@@ -20,10 +19,10 @@ my $stop_thr = 50;
 my $pcrd = PCRDTest->new;
 $pcrd->create_daemon(
 	'modules' => ['Power'],
+	'probe_interval' => 0.02,
 	'Power.capacity.pattern' => $pcrd->prepare_tmpfile('capacity', $capacity),
 	'Power.status.pattern' => $pcrd->prepare_tmpfile('status', 'Charging'),
 	'Power.battery_life.pattern' => $pcrd->prepare_tmpfile('energy', $energy),
-	'Power.battery_life.probe_interval' => 0.02,
 	'Power.charge_threshold.start_pattern' => $pcrd->prepare_tmpfile('start_thr', $start_thr),
 	'Power.charge_threshold.stop_pattern' => $pcrd->prepare_tmpfile('stop_thr', $stop_thr),
 );
@@ -40,8 +39,8 @@ sub update_files
 my $timer = IO::Async::Timer::Periodic->new(
 	interval => 0.01,
 	on_tick => sub {
-		if ($test_ticks++ == 12) {
-			$pcrd->stop;
+		if ($test_ticks++ >= 12) {
+			$pcrd->stop if $test_ticks >= 20;
 			return;
 		}
 

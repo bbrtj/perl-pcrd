@@ -11,7 +11,7 @@ use parent 'PCRD::Module::Power';
 use constant CAPACITY_CONFIG => ['Power.capacity.pattern', '/sys/class/power_supply/BAT*/capacity'];
 use constant STATUS_CONFIG => ['Power.status.pattern', '/sys/class/power_supply/BAT*/status'];
 use constant BATTERY_LIFE_CONFIG => ['Power.battery_life.pattern', '/sys/class/power_supply/BAT*/energy_now'];
-use constant BATTERY_LIFE_PROBE_INTERVAL_CONFIG => ['Power.battery_life.probe_interval', 10];
+use constant PROBE_INTERVAL_CONFIG => ['probe_interval', 10];
 use constant CHARGE_START_THRESHOLD_CONFIG =>
 	['Power.charge_threshold.start_pattern', '/sys/class/power_supply/BAT*/charge_start_threshold'];
 use constant CHARGE_STOP_THRESHOLD_CONFIG =>
@@ -23,10 +23,10 @@ sub new
 	my $self = $class->SUPER::new(%args);
 	my $c = $self->{config};
 
+	$self->{probe_interval} = $c->get_value(@{(PROBE_INTERVAL_CONFIG)});
 	$self->{capacity}{pattern} = $c->get_value(@{(CAPACITY_CONFIG)});
 	$self->{status}{pattern} = $c->get_value(@{(STATUS_CONFIG)});
 	$self->{battery_life}{pattern} = $c->get_value(@{(BATTERY_LIFE_CONFIG)});
-	$self->{battery_life}{probe_interval} = $c->get_value(@{(BATTERY_LIFE_PROBE_INTERVAL_CONFIG)});
 	$self->{charge_threshold}{start_pattern} = $c->get_value(@{(CHARGE_START_THRESHOLD_CONFIG)});
 	$self->{charge_threshold}{stop_pattern} = $c->get_value(@{(CHARGE_STOP_THRESHOLD_CONFIG)});
 
@@ -124,7 +124,7 @@ sub setup_battery_life
 	$self->{battery_life}{history} //= [];
 
 	my $timer = IO::Async::Timer::Periodic->new(
-		interval => $self->{battery_life}{probe_interval},
+		interval => $self->{probe_interval},
 		on_tick => sub {
 			unshift @{$self->{battery_life}{history}},
 				sum map { PCRD::Util::slurp_1($_) } @files;
@@ -148,7 +148,7 @@ sub get_battery_life
 	return -1 if $max == $min;
 
 	my $used = $max - $min;
-	my $seconds = $self->{battery_life}{probe_interval} * $count;
+	my $seconds = $self->{probe_interval} * $count;
 
 	return int($min / ($used / $seconds) / 60);
 }
