@@ -3,14 +3,34 @@ package PCRD::Util;
 use v5.14;
 use warnings;
 use autodie;
+use IPC::Open3;
+use Symbol 'gensym';
 
 sub slurp
 {
 	my ($file) = @_;
 	open my $fh, '<', $file;
 
-	local $/;
-	return scalar readline $fh;
+	return readline $fh;
+}
+
+sub slurp_command
+{
+	my (@command) = @_;
+
+	my $pid = open3(undef, my $output, my $error = gensym, @command);
+
+	my @contents = readline $output;
+	my $errors = do {
+		local $/;
+		readline $error;
+	};
+	waitpid $pid, 0;
+
+	my $status = $? >> 8;
+	die "command failed: $errors" if $status != 0;
+
+	return @contents;
 }
 
 sub spew

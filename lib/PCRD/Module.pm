@@ -75,7 +75,7 @@ sub get_implementation
 {
 	my ($class, $name, $error_ref) = @_;
 	state $kernel = do {
-		my $from_cmd = `uname -s`;
+		my ($from_cmd) = PCRD::Util::slurp_command('uname', '-s');
 		chomp $from_cmd;
 		$from_cmd;
 	};
