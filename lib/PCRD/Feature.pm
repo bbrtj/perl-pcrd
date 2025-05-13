@@ -35,17 +35,19 @@ sub _load_config
 	);
 
 	$self->{config} = $self->{_config}->get_values;
-	foreach my $key (%{$self->{config_def}}) {
-		$self->{config}{$key} //= $self->{config_def}{$key};
+
+	foreach my $key (keys %{$self->{config_def}}) {
+		$self->{config}{$key} //= $self->{config_def}{$key}{value};
 	}
 }
 
 sub enabled
 {
 	my ($self) = @_;
+	my $included_by_default = $self->{module}{config}{all_features};
 
-	# features are enabled by default
-	return !exists $self->{config}{enabled} || $self->{config}{enabled};
+	return !!1 if $included_by_default && !exists $self->{config}{enabled};
+	return !!$self->{config}{enabled};
 }
 
 # check if feature is functional (done first)
@@ -110,7 +112,7 @@ sub dump_config
 	my %current;
 	foreach my $key (keys %{$self->{config}}) {
 		my $real_key = join '.', @{$self->{_config}{prefix}}, $key;
-		$current{$real_key} = $self->{config}{$key};
+		$current{$real_key} = $self->{config}{$key} // '';
 	}
 
 	my $str = join "\n", map { "$_=$current{$_}" } sort keys %current;

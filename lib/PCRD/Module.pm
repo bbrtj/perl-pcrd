@@ -17,8 +17,16 @@ sub new
 	my $self = bless \%args, $class;
 	weaken $self->{pcrd};
 
-	$args{_config} //= $args{pcrd}{_config}->clone(prefix => [$self->name]);
+	$self->_load_config;
 	return $self;
+}
+
+sub _load_config
+{
+	my ($self) = @_;
+
+	$self->{_config} //= $self->{pcrd}{_config}->clone(prefix => [$self->name]);
+	$self->{config}{all_features} = $self->{_config}->get_value('all_features', 1);
 }
 
 sub init
@@ -45,7 +53,7 @@ sub features
 		$self->{features}{$key} = $feat;
 	}
 
-	return $self->{features};
+	return $self->{features} // {};
 }
 
 sub _build_features

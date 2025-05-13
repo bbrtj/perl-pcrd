@@ -245,7 +245,7 @@ sub _build_features
 	};
 
 	$features->{cpu_auto_scaling}{info} =
-		'CPU scaling can be automatically adjusted based on whether the charger is plugged in';
+		'CPU scaling can be automatically adjusted based on whether the charger is plugged in. Requires status feature from Power module.';
 	$features->{cpu_auto_scaling}{config} = {
 		%{$features->{cpu_auto_scaling}{config} // {}},
 		ac => {

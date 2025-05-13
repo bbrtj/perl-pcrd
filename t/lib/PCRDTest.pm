@@ -126,7 +126,8 @@ sub run_tests
 		else {
 			if (looks_like_number($expected) && int($expected) != $expected) {
 				$expected = int($expected * 1e6) / 1e6;
-				$got = int($got * 1e6) / 1e6;
+				$got = int($got * 1e6) / 1e6
+					if looks_like_number($got);
 			}
 
 			is($got, $expected, $message);

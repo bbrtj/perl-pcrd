@@ -17,12 +17,11 @@ $pcrd->create_daemon(
 	probe_interval => 0.01,
 	Power => {
 		enabled => 1,
-		capacity => {enabled => 0},
+		all_features => 0,
 		status => {
+			enabled => 1,
 			pattern => $pcrd->prepare_tmpfile('status', 'Charging'),
 		},
-		battery_life => {enabled => 0},
-		charge_threshold => {enabled => 0},
 	},
 	Performance => {
 		enabled => 1,
