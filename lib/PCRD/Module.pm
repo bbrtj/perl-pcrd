@@ -12,12 +12,12 @@ sub new
 {
 	my ($class, %args) = @_;
 
-	$args{daemon} // die 'daemon is required';
-	$args{config} //= $args{daemon}{config};
+	$args{pcrd} // die 'pcrd is required';
 
 	my $self = bless \%args, $class;
-	weaken $self->{daemon};
+	weaken $self->{pcrd};
 
+	$args{_config} //= $args{pcrd}{_config}->clone(prefix => [$self->name]);
 	return $self;
 }
 
@@ -25,22 +25,27 @@ sub init
 {
 	my ($self) = @_;
 
-	# initialize this module for operation
-	...;
+	foreach my $feature (keys %{$self->features}) {
+		$self->features->{$feature}->init;
+	}
 }
 
 sub features
 {
 	my ($self) = @_;
 
-	return $self->{features} //= do {
-		my $features = $self->_build_features;
+	return $self->{features}
+		if defined $self->{features};
 
-		+{
-			map { $_ => PCRD::Feature->new($self, $_, $features->{$_}) }
-				keys %$features
-		};
-	};
+	my $features = $self->_build_features;
+	foreach my $key (keys %$features) {
+		my $feat = PCRD::Feature->new($self, $key, $features->{$key});
+		next unless $feat->enabled;
+
+		$self->{features}{$key} = $feat;
+	}
+
+	return $self->{features};
 }
 
 sub _build_features

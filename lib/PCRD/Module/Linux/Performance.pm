@@ -7,55 +7,20 @@ use IO::Async::Timer::Periodic;
 
 use parent 'PCRD::Module::Performance';
 
-use constant MEMORY_CONFIG => ['Performance.memory.file', '/proc/meminfo'];
-use constant STORAGE_CONFIG => ['Performance.storage.command', 'df --total'];
-use constant CPU_CONFIG => ['Performance.cpu.file', '/proc/stat'];
-use constant CPU_SCALING_CONFIG =>
-	['Performance.cpu_scaling.file', '/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor'];
-use constant CPU_SCALING_AUTO_CONFIG => ['Performance.cpu_scaling.auto.enabled', '1'];
-use constant CPU_SCALING_AUTO_AC_CONFIG => ['Performance.cpu_scaling.auto.ac', 'performance'];
-use constant CPU_SCALING_AUTO_BAT_CONFIG => ['Performance.cpu_scaling.auto.bat', 'powersave'];
-use constant PROBE_INTERVAL_CONFIG => ['probe_interval', 10];
-
-sub new
-{
-	my ($class, %args) = @_;
-	my $self = $class->SUPER::new(%args);
-	my $c = $self->{config};
-
-	$self->{probe_interval} = $c->get_value(@{(PROBE_INTERVAL_CONFIG)});
-	$self->{memory}{file} = $c->get_value(@{(MEMORY_CONFIG)});
-	$self->{storage}{command} = $c->get_value(@{(STORAGE_CONFIG)});
-	$self->{cpu}{file} = $c->get_value(@{(CPU_CONFIG)});
-	$self->{cpu_scaling}{file} = $c->get_value(@{(CPU_SCALING_CONFIG)});
-	$self->{cpu_scaling}{auto}{enabled} = $c->get_value(@{(CPU_SCALING_AUTO_CONFIG)});
-	$self->{cpu_scaling}{auto}{ac} = $c->get_value(@{(CPU_SCALING_AUTO_AC_CONFIG)});
-	$self->{cpu_scaling}{auto}{bat} = $c->get_value(@{(CPU_SCALING_AUTO_BAT_CONFIG)});
-
-	return $self;
-}
-
-sub init
-{
-	my ($self) = @_;
-
-	$self->setup_cpu_scaling;
-}
-
 ### MEMORY
 
 sub check_memory
 {
-	my ($self) = @_;
+	my ($self, $feature) = @_;
 
-	return -r $self->{memory}{file};
+	return -r $feature->{config}{file};
 }
 
 sub get_memory
 {
-	my ($self) = @_;
+	my ($self, $feature) = @_;
 
-	my @lines = PCRD::Util::slurp($self->{memory}{file});
+	my @lines = PCRD::Util::slurp($feature->{config}{file});
 
 	my %data;
 	foreach my $line (@lines) {
@@ -77,16 +42,16 @@ sub get_memory
 
 sub check_swap
 {
-	my ($self) = @_;
+	my ($self, $feature) = @_;
 
-	return $self->check_memory;
+	return -r $feature->{config}{file};
 }
 
 sub get_swap
 {
-	my ($self) = @_;
+	my ($self, $feature) = @_;
 
-	my @lines = PCRD::Util::slurp($self->{memory}{file});
+	my @lines = PCRD::Util::slurp($feature->{config}{file});
 
 	my %data;
 	foreach my $line (@lines) {
@@ -108,11 +73,11 @@ sub get_swap
 
 sub check_storage
 {
-	my ($self) = @_;
+	my ($self, $feature) = @_;
 
 	my @lines;
 	my $ex = PCRD::Util::try {
-		@lines = PCRD::Util::slurp_command($self->{storage}{command});
+		@lines = PCRD::Util::slurp_command($feature->{config}{command});
 	};
 
 	return !$ex && @lines > 0;
@@ -120,9 +85,9 @@ sub check_storage
 
 sub get_storage
 {
-	my ($self) = @_;
+	my ($self, $feature) = @_;
 
-	my @lines = PCRD::Util::slurp_command($self->{storage}{command});
+	my @lines = PCRD::Util::slurp_command($feature->{config}{command});
 	my @cols;
 	foreach my $line (@lines) {
 		next unless $line =~ /^total\b/i;
@@ -140,16 +105,16 @@ sub get_storage
 
 sub check_cpu
 {
-	my ($self) = @_;
+	my ($self, $feature) = @_;
 
-	return -r $self->{cpu}{file};
+	return -r $feature->{config}{file};
 }
 
 sub get_cpu
 {
-	my ($self) = @_;
+	my ($self, $feature) = @_;
 
-	my @lines = PCRD::Util::slurp($self->{cpu}{file});
+	my @lines = PCRD::Util::slurp($feature->{config}{file});
 	my @cols;
 	foreach my $line (@lines) {
 		next unless $line =~ /^cpu\b/i;
@@ -167,57 +132,64 @@ sub get_cpu
 
 sub check_cpu_scaling
 {
-	my ($self) = @_;
+	my ($self, $feature) = @_;
 
-	return !!0 unless -r $self->{cpu_scaling}{file} && -w $self->{cpu_scaling}{file};
+	return -r $feature->{config}{file} && -w $feature->{config}{file};
+}
 
-	# dependency on Power module
-	if ($self->{cpu_scaling}{auto}{enabled}) {
-		return !!0 unless $self->{daemon}{modules}{Power};
-	}
+sub get_cpu_scaling
+{
+	my ($self, $feature) = @_;
 
+	return PCRD::Util::slurp_1($feature->{config}{file});
+}
+
+sub set_cpu_scaling
+{
+	my ($self, $feature, $value) = @_;
+
+	return PCRD::Util::spew($feature->{config}{file}, $value);
+}
+
+sub check_cpu_auto_scaling
+{
+	my ($self, $feature) = @_;
+
+	return !!0 unless $self->feature('cpu_scaling');
+	return !!0 unless $self->feature('cpu_scaling')->check;
+	return !!0 unless $self->{pcrd}{modules}{Power};
+	return !!0 unless $self->{pcrd}{modules}{Power}->feature('status');
+	return !!0 unless $self->{pcrd}{modules}{Power}->feature('status')->check;
 	return !!1;
 }
 
-sub setup_cpu_scaling
+sub init_cpu_auto_scaling
 {
-	my ($self) = @_;
-	return unless $self->{cpu_scaling}{auto}{enabled};
+	my ($self, $feature) = @_;
+
+	my $scaling = $self->feature('cpu_scaling');
+	my $charging = $self->{pcrd}{modules}{Power}->feature('status');
 
 	my $timer = IO::Async::Timer::Periodic->new(
-		interval => $self->{probe_interval},
+		interval => $self->{pcrd}{probe_interval},
 		on_tick => sub {
-			my $current = $self->get_cpu_scaling;
+			my $current = $scaling->execute('r');
 			my $wanted;
 
-			if ($self->{daemon}{modules}{Power}->get_status) {
-				$wanted = $self->{cpu_scaling}{auto}{ac};
+			if ($charging->execute('r')) {
+				$wanted = $feature->{config}{ac};
 			}
 			else {
-				$wanted = $self->{cpu_scaling}{auto}{bat};
+				$wanted = $feature->{config}{battery};
 			}
 
-			$self->set_cpu_scaling($wanted)
+			$scaling->execute('w', $wanted)
 				if $wanted ne $current;
 		},
 	);
 
 	$timer->start;
-	$self->{daemon}{loop}->add($timer);
-}
-
-sub get_cpu_scaling
-{
-	my ($self) = @_;
-
-	return PCRD::Util::slurp_1($self->{cpu_scaling}{file});
-}
-
-sub set_cpu_scaling
-{
-	my ($self, $value) = @_;
-
-	return PCRD::Util::spew($self->{cpu_scaling}{file}, $value);
+	$self->{pcrd}{loop}->add($timer);
 }
 
 sub _build_features
@@ -226,37 +198,65 @@ sub _build_features
 
 	my $features = $self->SUPER::_build_features;
 
-	$features->{memory}{info} = <<"	INFO";
-	System memory is found in a file located under /proc directory.
-	Currently, pcrd gets it from $self->{memory}{file}. It may be
-	modified by changing '@{[MEMORY_CONFIG->[0]]}' configuration value.
-	INFO
+	$features->{memory}{info} = 'System memory is usually found in a file located under /proc directory';
+	$features->{memory}{config} = {
+		%{$features->{memory}{config} // {}},
+		file => {
+			desc => 'file path',
+			value => '/proc/meminfo',
+		},
+	};
 
-	$features->{swap}{info} = <<"	INFO";
-	Swap memory is found in a file located under /proc directory (same as
-	system memory). Currently, pcrd gets it from $self->{memory}{file}.
-	It may be modified by changing '@{[MEMORY_CONFIG->[0]]}' configuration
-	value.
-	INFO
+	$features->{swap}{info} =
+		'Swap memory is found in a file usually located under /proc directory (same as system memory)';
+	$features->{swap}{config} = {
+		%{$features->{swap}{config} // {}},
+		file => {
+			desc => 'file path',
+			value => '/proc/meminfo',
+		},
+	};
 
-	$features->{storage}{info} = <<"	INFO";
-	System storage is calculated by a system command. Currently, pcrd runs
-	'$self->{storage}{command}'. It may be modified by changing
-	'@{[STORAGE_CONFIG->[0]]}' configuration value.
-	INFO
+	$features->{storage}{info} = 'System storage is calculated by a system command';
+	$features->{storage}{config} = {
+		%{$features->{storage}{config} // {}},
+		command => {
+			desc => 'full shell command',
+			value => 'df --total',
+		},
+	};
 
-	$features->{cpu}{info} = <<"	INFO";
-	CPU usage is calculated from data found in a file located under /proc
-	diretory. Currently, pcrd calculates it based on contents of
-	$self->{cpu}{file}. It may be modified by changing
-	'@{[CPU_CONFIG->[0]]}' configuration value.
-	INFO
+	$features->{cpu}{info} = 'CPU usage is calculated from data found in a file usually located under /proc diretory';
+	$features->{cpu}{config} = {
+		%{$features->{cpu}{config} // {}},
+		file => {
+			desc => 'file path',
+			value => '/proc/stat',
+		},
+	};
 
-	$features->{cpu_scaling}{info} = <<"	INFO";
-	CPU scaling is found in a file located under /sys directory. Currently,
-	pcrd gets it from $self->{cpu_scaling}{file}. It may be modified by
-	changing '@{[CPU_SCALING_CONFIG->[0]]}' configuration value.
-	INFO
+	$features->{cpu_scaling}{info} = 'CPU scaling is found in a file usually located under /sys directory';
+	$features->{cpu_scaling}{config} = {
+		%{$features->{cpu_scaling}{config} // {}},
+		file => {
+			desc => 'file path',
+			value => '/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor',
+		},
+	};
+
+	$features->{cpu_auto_scaling}{info} =
+		'CPU scaling can be automatically adjusted based on whether the charger is plugged in';
+	$features->{cpu_auto_scaling}{config} = {
+		%{$features->{cpu_auto_scaling}{config} // {}},
+		ac => {
+			desc => 'scaling governor on AC',
+			value => 'performance',
+		},
+		battery => {
+			desc => 'scaling governor on battery',
+			value => 'powersave',
+		},
+	};
 
 	return $features;
 }

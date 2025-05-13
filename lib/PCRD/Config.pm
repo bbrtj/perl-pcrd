@@ -3,32 +3,43 @@ package PCRD::Config;
 use v5.14;
 use warnings;
 
-sub instance
+sub new
 {
 	my ($class, %args) = @_;
-	my $name = delete $args{name} // 'default';
+	my $self = bless \%args, $class;
+	$self->{prefix} //= [];
 
-	state $singletons = {};
-	return $singletons->{$name} //= do {
-		my $self = bless \%args, $class;
-
-		$self->load_config;
-		$self;
-	};
+	$self->load_config;
+	return $self;
 }
 
-sub load_config
-{
-	my ($self) = @_;
+sub load_config { ... }
 
-	...;
+sub clone
+{
+	my ($self, %args) = @_;
+	%args = (%$self, %args);
+
+	return bless \%args, ref $self;
 }
 
 sub get_value
 {
 	my ($self, $name, $default) = @_;
 
-	return $self->{values}{$name} // $default;
+	return $self->get_values->{$name} // $default;
+}
+
+sub get_values
+{
+	my ($self) = @_;
+
+	my $config = $self->{values};
+	foreach my $part (@{$self->{prefix}}) {
+		$config = $config->{$part};
+	}
+
+	return $config;
 }
 
 1;

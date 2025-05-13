@@ -18,13 +18,23 @@ my $stop_thr = 50;
 
 my $pcrd = PCRDTest->new;
 $pcrd->create_daemon(
-	'modules' => ['Power'],
-	'probe_interval' => 0.02,
-	'Power.capacity.pattern' => $pcrd->prepare_tmpfile('capacity', $capacity),
-	'Power.status.pattern' => $pcrd->prepare_tmpfile('status', 'Charging'),
-	'Power.battery_life.pattern' => $pcrd->prepare_tmpfile('energy', $energy),
-	'Power.charge_threshold.start_pattern' => $pcrd->prepare_tmpfile('start_thr', $start_thr),
-	'Power.charge_threshold.stop_pattern' => $pcrd->prepare_tmpfile('stop_thr', $stop_thr),
+	probe_interval => 0.02,
+	Power => {
+		enabled => 1,
+		capacity => {
+			pattern => $pcrd->prepare_tmpfile('capacity', $capacity),
+		},
+		status => {
+			pattern => $pcrd->prepare_tmpfile('status', 'Charging'),
+		},
+		battery_life => {
+			pattern => $pcrd->prepare_tmpfile('energy', $energy),
+		},
+		charge_threshold => {
+			start_pattern => $pcrd->prepare_tmpfile('start_thr', $start_thr),
+			stop_pattern => $pcrd->prepare_tmpfile('stop_thr', $stop_thr),
+		},
+	},
 );
 
 sub update_files

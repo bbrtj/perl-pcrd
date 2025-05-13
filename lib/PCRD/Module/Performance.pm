@@ -23,33 +23,35 @@ sub check_cpu_scaling { ... }
 sub get_cpu_scaling { ... }
 sub set_cpu_scaling { ... }
 
+sub check_cpu_auto_scaling { ... }
+sub init_cpu_auto_scaling { ... }
+
 sub _build_features
 {
 	return {
 		memory => {
 			desc => 'Get the current main memory usage',
 			mode => 'r',
-			info => undef,
 		},
 		swap => {
 			desc => 'Get current swap usage',
 			mode => 'r',
-			info => undef,
 		},
 		storage => {
 			desc => 'Get current storage usage',
 			mode => 'r',
-			info => undef,
 		},
 		cpu => {
 			desc => 'Get current cpu utilization',
 			mode => 'r',
-			info => undef,
 		},
 		cpu_scaling => {
 			desc => 'Get current cpu frequency scaling governor',
 			mode => 'rw',
-			info => undef,
+		},
+		cpu_auto_scaling => {
+			desc => 'Automatically set cpu scaling based on charging status',
+			mode => 'i',
 		},
 	};
 }

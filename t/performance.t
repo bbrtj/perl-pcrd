@@ -14,17 +14,34 @@ my $scaling = 'performance';
 
 my $pcrd = PCRDTest->new;
 $pcrd->create_daemon(
-	'modules' => ['Power', 'Performance'],
-	'probe_interval' => 0.01,
-	'Power.capacity.pattern' => $pcrd->prepare_tmpfile('capacity', 1),
-	'Power.status.pattern' => $pcrd->prepare_tmpfile('status', 'Charging'),
-	'Power.battery_life.pattern' => $pcrd->prepare_tmpfile('energy', 1),
-	'Power.charge_threshold.start_pattern' => $pcrd->prepare_tmpfile('start_thr', 1),
-	'Power.charge_threshold.stop_pattern' => $pcrd->prepare_tmpfile('stop_thr', 1),
-	'Performance.memory.file' => 't/mock/proc/meminfo',
-	'Performance.storage.command' => 't/mock/bin/mockdf',
-	'Performance.cpu.file' => 't/mock/proc/stat',
-	'Performance.cpu_scaling.file' => $pcrd->prepare_tmpfile('cpu_scaling', $scaling),
+	probe_interval => 0.01,
+	Power => {
+		enabled => 1,
+		capacity => {enabled => 0},
+		status => {
+			pattern => $pcrd->prepare_tmpfile('status', 'Charging'),
+		},
+		battery_life => {enabled => 0},
+		charge_threshold => {enabled => 0},
+	},
+	Performance => {
+		enabled => 1,
+		memory => {
+			file => 't/mock/proc/meminfo',
+		},
+		swap => {
+			file => 't/mock/proc/meminfo',
+		},
+		storage => {
+			command => 't/mock/bin/mockdf',
+		},
+		cpu => {
+			file => 't/mock/proc/stat',
+		},
+		cpu_scaling => {
+			file => $pcrd->prepare_tmpfile('cpu_scaling', $scaling),
+		},
+	},
 );
 
 my $got_powersave;

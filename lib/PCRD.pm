@@ -13,12 +13,6 @@ use PCRD::Config;
 use PCRD::Util;
 use PCRD::Module;
 
-use constant MODULES_CONFIG => ['modules', [qw(Power Performance)]];
-use constant SOCKET_CONFIG => ['socket', '/var/run/pcrd.sock'];
-use constant SOCKET_USER_CONFIG => ['socket_permissions', $UID];
-use constant SOCKET_GROUP_CONFIG => ['socket_permissions', $GID];
-use constant SOCKET_PERMISSIONS_CONFIG => ['socket_permissions', '0660'];
-
 # socket constants (vars for easier interpolation)
 my $ps = "\t";    # protocol separator
 my $ok = 'ok';    # success
@@ -29,21 +23,47 @@ sub new
 	my ($class, %args) = @_;
 	my $self = bless \%args, $class;
 
-	$self->{config} //= PCRD::Config->instance;
 	$self->{loop} = IO::Async::Loop->new;
-	$self->load_modules;
+	$self->_load_config;
+	$self->_load_modules;
 	return $self;
 }
 
-sub load_modules
+sub _load_config
 {
 	my ($self) = @_;
 
-	my $module_list = $self->{config}->get_value(@{(MODULES_CONFIG)});
+	$self->{_config} //= PCRD::Config->new;
+	$self->{probe_interval} = $self->{_config}->get_value('probe_interval', 10);
+	$self->{socket} = $self->{_config}->get_value('socket', {});
+	$self->{socket}{file} //= '/var/run/pcrd.sock';
+	$self->{socket}{user} //= $EUID;
+	$self->{socket}{group} //= $EGID;
+	$self->{socket}{perm} //= '0660';
+}
+
+sub _load_modules
+{
+	my ($self) = @_;
+
+	my $config = $self->{_config}->get_values;
+	my @module_list;
+	foreach my $key (keys %$config) {
+		next unless $key =~ m/^[A-Z]/;
+		next unless $config->{$key}{enabled};
+
+		# modules have first letter uppercase in config, and must have enabled => 1
+		# (no modules by default)
+		push @module_list, $key;
+	}
+
+	die 'no modules specified, nothing to do'
+		unless @module_list > 0;
+
 	my @modules;
 	my @loading_errors;
 
-	foreach my $module (@$module_list) {
+	foreach my $module (@module_list) {
 		my $loaded = PCRD::Module->get_implementation($module, \my $error);
 
 		if (!$loaded) {
@@ -60,8 +80,65 @@ sub load_modules
 	}
 
 	$self->{modules} = {
-		map { $_->name => $_->new(daemon => $self) } @modules
+		map { $_->name => $_->new(pcrd => $self) } @modules
 	};
+}
+
+sub _setup_socket
+{
+	my ($self) = @_;
+
+	unlink $self->{socket}{file}
+		if -e $self->{socket}{file};
+
+	my $socket = IO::Socket::UNIX->new(
+		Type => SOCK_STREAM,
+		Local => $self->{socket}{file},
+		Listen => 1,
+	) or die "Cannot create server socket - $IO::Socket::errstr\n";
+
+	my $uid = $self->{socket}{user};
+	$uid = getpwnam($uid)
+		unless looks_like_number($uid);
+
+	my ($gid) = split / /, $self->{socket}{group};
+	$gid = getgrnam($gid)
+		unless looks_like_number($gid);
+
+	my $perm = oct($self->{socket}{perm});
+
+	chown $uid, $gid, $self->{socket}{file};
+	chmod $perm, $self->{socket}{file};
+
+	return $socket;
+}
+
+sub _register_listener
+{
+	my ($self) = @_;
+	return if $self->{listener};
+
+	my $listener = IO::Async::Listener->new(
+		on_stream => sub {
+			my (undef, $stream) = @_;
+
+			$stream->configure(
+				on_read => sub {
+					$self->handle_message(@_);
+					return 0;
+				}
+			);
+
+			$self->{loop}->add($stream);
+		}
+	);
+
+	$self->{loop}->add($listener);
+	$listener->listen(
+		handle => $self->_setup_socket,
+	);
+
+	$self->{listener} = $listener;
 }
 
 sub check_modules
@@ -83,8 +160,10 @@ sub check_modules
 
 		if (!$this_success) {
 			say 'error!';
-			say "'$item' will not work properly with current configuration.";
-			say $checklist{$item}->error;
+			warn "'$item' will not work properly with current configuration.\n";
+			warn $checklist{$item}->error_string . "\n";
+			warn "Current config:\n" . $checklist{$item}->dump_config . "\n";
+			warn "\n";
 		}
 		else {
 			say 'ok';
@@ -139,54 +218,6 @@ sub handle_message
 	}
 }
 
-sub register_listener
-{
-	my ($self) = @_;
-	return if $self->{listener};
-
-	my $socket_file = $self->{config}->get_value(@{(SOCKET_CONFIG)});
-	my $server = IO::Socket::UNIX->new(
-		Type => SOCK_STREAM,
-		Local => $socket_file,
-		Listen => 1,
-	) or die "Cannot create server socket - $IO::Socket::errstr\n";
-
-	my $uid = $self->{config}->get_value(@{(SOCKET_USER_CONFIG)});
-	$uid = getpwnam($uid)
-		unless looks_like_number($uid);
-
-	my ($gid) = split / /, $self->{config}->get_value(@{(SOCKET_GROUP_CONFIG)});
-	$gid = getgrnam($gid)
-		unless looks_like_number($gid);
-
-	my $perm = oct($self->{config}->get_value(@{(SOCKET_PERMISSIONS_CONFIG)}));
-
-	chown $uid, $gid, $socket_file;
-	chmod $perm, $socket_file;
-
-	my $listener = IO::Async::Listener->new(
-		on_stream => sub {
-			my (undef, $stream) = @_;
-
-			$stream->configure(
-				on_read => sub {
-					$self->handle_message(@_);
-					return 0;
-				}
-			);
-
-			$self->{loop}->add($stream);
-		}
-	);
-
-	$self->{loop}->add($listener);
-	$listener->listen(
-		handle => $server,
-	);
-
-	$self->{listener} = $listener;
-}
-
 sub start
 {
 	my ($self) = @_;
@@ -198,7 +229,7 @@ sub start
 		$self->{modules}{$module}->init;
 	}
 
-	$self->register_listener;
+	$self->_register_listener;
 	$self->{loop}->run;
 }
 

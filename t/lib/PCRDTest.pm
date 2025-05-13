@@ -55,18 +55,17 @@ sub create_daemon
 	my ($self, %config) = @_;
 	return if $self->{pcrd};
 
-	(undef, $config{socket}) = tempfile('sockXXXX', DIR => $self->{dir}, OPEN => 0);
+	(undef, $config{socket}{file}) = tempfile('sockXXXX', DIR => $self->{dir}, OPEN => 0);
 
 	$self->{pcrd} = PCRD->new(
-		config => PCRD::Config::Memory->instance(
-			name => 'mock',
+		_config => PCRD::Config::Memory->new(
 			values => \%config,
 		)
 	);
 
 	# early register socket, so that it will be created for the client
-	$self->{pcrd}->register_listener;
-	$self->_create_client($config{socket});
+	$self->{pcrd}->_register_listener;
+	$self->_create_client($config{socket}{file});
 
 	return $self;
 }
