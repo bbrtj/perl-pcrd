@@ -10,19 +10,19 @@ use parent 'PCRD::Module::Power';
 
 ### CAPACITY
 
-sub check_capacity
-{
-	my ($self, $feature) = @_;
-
-	my @files = glob $feature->{config}{pattern};
-	return @files > 0 && PCRD::Util::all { -r } @files;
-}
-
-sub init_capacity
+sub prepare_capacity
 {
 	my ($self, $feature) = @_;
 
 	$feature->{vars}{files} = [glob $feature->{config}{pattern}];
+}
+
+sub check_capacity
+{
+	my ($self, $feature) = @_;
+
+	return @{$feature->{vars}{files}} > 0
+		&& PCRD::Util::all { -r } @{$feature->{vars}{files}};
 }
 
 sub get_capacity
@@ -42,19 +42,19 @@ sub get_capacity
 
 ### CHARGING
 
-sub check_charging
-{
-	my ($self, $feature) = @_;
-
-	my @files = glob $feature->{config}{pattern};
-	return @files > 0 && PCRD::Util::all { -r } @files;
-}
-
-sub init_charging
+sub prepare_charging
 {
 	my ($self, $feature) = @_;
 
 	$feature->{vars}{files} = [glob $feature->{config}{pattern}];
+}
+
+sub check_charging
+{
+	my ($self, $feature) = @_;
+
+	return @{$feature->{vars}{files}} > 0
+		&& PCRD::Util::all { -r } @{$feature->{vars}{files}};
 }
 
 sub get_charging
@@ -73,21 +73,21 @@ sub get_charging
 
 ### CHARGING THRESHOLD
 
-sub check_charging_threshold
-{
-	my ($self, $feature) = @_;
-
-	my @start_files = glob $feature->{config}{start_pattern};
-	my @stop_files = glob $feature->{config}{stop_pattern};
-	return @start_files > 0 && @stop_files > 0 && PCRD::Util::all { -r && -w } @start_files, @stop_files;
-}
-
-sub init_charging_threshold
+sub prepare_charging_threshold
 {
 	my ($self, $feature) = @_;
 
 	$feature->{vars}{start_files} = [glob $feature->{config}{start_pattern}];
 	$feature->{vars}{stop_files} = [glob $feature->{config}{stop_pattern}];
+}
+
+sub check_charging_threshold
+{
+	my ($self, $feature) = @_;
+
+	my @start_files = @{$feature->{vars}{start_files}};
+	my @stop_files = @{$feature->{vars}{stop_files}};
+	return @start_files > 0 && @stop_files > 0 && PCRD::Util::all { -r && -w } @start_files, @stop_files;
 }
 
 sub get_charging_threshold
@@ -122,26 +122,31 @@ sub set_charging_threshold
 
 ### LIFE
 
+sub prepare_life
+{
+	my ($self, $feature) = @_;
+
+	$feature->{vars}{files} = [glob $feature->{config}{pattern}];
+}
+
 sub check_life
 {
 	my ($self, $feature) = @_;
 
-	my @files = glob $feature->{config}{pattern};
-	return @files > 0 && PCRD::Util::all { -r } @files;
+	return @{$feature->{vars}{files}} > 0
+		&& PCRD::Util::all { -r } @{$feature->{vars}{files}};
 }
 
 sub init_life
 {
 	my ($self, $feature) = @_;
 
-	my @files = glob $feature->{config}{pattern};
 	$feature->{vars}{history} //= [];
-
 	my $timer = IO::Async::Timer::Periodic->new(
 		interval => $self->{pcrd}{probe_interval},
 		on_tick => sub {
 			unshift @{$feature->{vars}{history}},
-				sum map { PCRD::Util::slurp_1($_) } @files;
+				sum map { PCRD::Util::slurp_1($_) } @{$feature->{vars}{files}};
 			@{$feature->{vars}{history}} = grep { defined } @{$feature->{vars}{history}}[0 .. 5];
 		},
 	);

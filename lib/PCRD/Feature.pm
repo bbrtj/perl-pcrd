@@ -50,7 +50,21 @@ sub enabled
 	return !!$self->{config}{enabled};
 }
 
-# check if feature is functional (done first)
+# prepare feature (done first)
+sub prepare
+{
+	my ($self) = @_;
+	return if $self->{prepared};
+
+	my $prepare_method = $self->{module}->can("prepare_$self->{name}");
+	if ($prepare_method) {
+		$self->{module}->$prepare_method($self);
+	}
+
+	$self->{prepared} = !!1;
+}
+
+# check if feature is functional (done after preparing)
 sub check
 {
 	my ($self) = @_;

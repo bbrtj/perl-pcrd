@@ -50,6 +50,7 @@ sub features
 		my $feat = PCRD::Feature->new($self, $key, $features->{$key});
 		next unless $feat->enabled;
 
+		$feat->prepare;
 		$self->{features}{$key} = $feat;
 	}
 
