@@ -117,7 +117,7 @@ sub set_charging_threshold
 		PCRD::Util::spew($file, $vals[1]);
 	}
 
-	return $self->get_charging_threshold($feature);
+	return 1;
 }
 
 ### LIFE

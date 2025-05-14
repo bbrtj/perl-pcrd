@@ -203,7 +203,7 @@ sub set_cpu_scaling
 	my ($self, $feature, $value) = @_;
 
 	PCRD::Util::spew($feature->{vars}{files}[0], $value);
-	return $self->get_cpu_scaling($feature);
+	return 1;
 }
 
 sub check_cpu_auto_scaling

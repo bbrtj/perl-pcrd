@@ -60,7 +60,7 @@ sub set_brightness
 	}
 
 	PCRD::Util::spew($feature->{vars}{now_files}[0], $new_curr);
-	return $self->get_brightness($feature);
+	return 1;
 }
 
 sub _build_features

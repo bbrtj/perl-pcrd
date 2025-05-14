@@ -48,7 +48,7 @@ sub set_volume
 	$value = "+$value" if $direction == 1;
 
 	PCRD::Util::slurp_command($feature->{config}{command}, 'set-sink-volume', '@DEFAULT_SINK@', $value);
-	return $self->get_volume($feature);
+	return 1;
 }
 
 sub _build_features

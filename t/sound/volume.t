@@ -28,15 +28,16 @@ $pcrd->add_test_timer(
 		interval => 0.04,
 		on_tick => sub {
 			$pcrd->test_message(['Sound', 'volume', 'r'], $volume);
-			$pcrd->test_message(['Sound', 'volume', 'w', '1'], $volume + 0.05);
-			$pcrd->test_message(['Sound', 'volume', 'w', '-1'], $volume);
+			$pcrd->test_message(['Sound', 'volume', 'w', '1'], 1);
+			$pcrd->test_message(['Sound', 'volume', 'r'], $volume + 0.05);
+			$pcrd->test_message(['Sound', 'volume', 'w', '-1'], 1);
 		},
 	)->start
 );
 
 # perl script is called multiple times, so this needs extra finalization time
 # window
-$pcrd->start(0.1, 0.3);
+$pcrd->start(0.1, 0.2);
 $pcrd->run_tests;
 
 done_testing;

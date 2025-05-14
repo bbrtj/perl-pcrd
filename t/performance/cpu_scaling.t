@@ -29,7 +29,7 @@ $pcrd->add_test_timer(
 		on_tick => sub {
 			$pcrd->test_message(['Performance', 'cpu_scaling', 'r'], get_scaling);
 			$scaling++;
-			$pcrd->test_message(['Performance', 'cpu_scaling', 'w', get_scaling], get_scaling);
+			$pcrd->test_message(['Performance', 'cpu_scaling', 'w', get_scaling], 1);
 		},
 	)->start
 );
