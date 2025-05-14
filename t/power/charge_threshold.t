@@ -24,7 +24,7 @@ $pcrd->create_daemon(
 	},
 );
 
-$pcrd->loop->add(
+$pcrd->add_test_timer(
 	IO::Async::Timer::Periodic->new(
 		interval => 0.04,
 		on_tick => sub {

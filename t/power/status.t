@@ -9,7 +9,7 @@ use PCRDTest;
 ################################################################################
 
 my $status = !!0;
-sub get_status { qw(Discharging Charging)[$status] }
+sub get_status { qw(Discharging Charging) [$status] }
 
 my $pcrd = PCRDTest->new;
 $pcrd->create_daemon(
@@ -23,7 +23,7 @@ $pcrd->create_daemon(
 	},
 );
 
-$pcrd->loop->add(
+$pcrd->add_test_timer(
 	IO::Async::Timer::Periodic->new(
 		interval => 0.04,
 		on_tick => sub {

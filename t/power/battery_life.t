@@ -24,7 +24,7 @@ $pcrd->create_daemon(
 	},
 );
 
-$pcrd->loop->add(
+$pcrd->add_test_timer(
 	IO::Async::Timer::Periodic->new(
 		interval => 0.01,
 		on_tick => sub {
@@ -38,8 +38,7 @@ $pcrd->loop->add(
 	)->start
 );
 
-# 0.105 guarantees to get the final answer from the loop (periodic tick every 0.01 sec)
-$pcrd->start(0.105);
+$pcrd->start(0.1);
 $pcrd->run_tests;
 
 done_testing;

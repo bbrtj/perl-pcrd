@@ -143,15 +143,36 @@ sub run_tests
 	}
 }
 
+sub add_test_timer
+{
+	my ($self, $timer) = @_;
+
+	push @{$self->{timers}}, $timer;
+	$self->loop->add($timer);
+}
+
 sub start
 {
 	my ($self, $timeout) = @_;
 	$timeout //= 0.5;
 
+	# test timers will be removed after $timeout, then the loop will be given
+	# additional 0.05 sec to respond to all signals
 	if ($timeout) {
-		$self->{pcrd}{loop}->add(
+		$self->loop->add(
 			IO::Async::Timer::Countdown->new(
 				delay => $timeout,
+				on_expire => sub {
+					foreach my $timer (@{$self->{timers}}) {
+						$timer->stop;
+					}
+				},
+			)->start
+		) if $self->{timers};
+
+		$self->loop->add(
+			IO::Async::Timer::Countdown->new(
+				delay => $timeout + 0.05,
 				on_expire => sub {
 					$self->stop;
 				},
