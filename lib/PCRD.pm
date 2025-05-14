@@ -9,7 +9,7 @@ use IO::Async::Loop;
 use Scalar::Util qw(looks_like_number);
 use English;
 
-use PCRD::Config;
+use PCRD::Config::File;
 use PCRD::Util;
 use PCRD::Module;
 
@@ -33,7 +33,7 @@ sub _load_config
 {
 	my ($self) = @_;
 
-	$self->{_config} //= PCRD::Config->new;
+	$self->{_config} //= PCRD::Config::File->new;
 	$self->{probe_interval} = $self->{_config}->get_value('probe_interval', 10);
 	$self->{socket} = $self->{_config}->get_value('socket', {});
 	$self->{socket}{file} //= '/var/run/pcrd.sock';

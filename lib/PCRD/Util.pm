@@ -68,5 +68,13 @@ sub all (&@)
 	return 1;
 }
 
+sub trim
+{
+	my $value = shift;
+	$value =~ s/^\s*//;
+	$value =~ s/\s*$//;
+	return $value;
+}
+
 1;
 
