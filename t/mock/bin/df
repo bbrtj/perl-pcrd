@@ -2,7 +2,7 @@
 
 print readline DATA;
 
-__END__
+__DATA__
 Filesystem               1K-blocks     Used Available Use% Mounted on
 tmpfs                        32768     1520     31248   5% /run
 devtmpfs                      8192        0      8192   0% /dev

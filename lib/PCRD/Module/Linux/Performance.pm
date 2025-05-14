@@ -148,7 +148,8 @@ sub set_cpu_scaling
 {
 	my ($self, $feature, $value) = @_;
 
-	return PCRD::Util::spew($feature->{config}{file}, $value);
+	PCRD::Util::spew($feature->{config}{file}, $value);
+	return $self->get_cpu_scaling($feature);
 }
 
 sub check_cpu_auto_scaling
@@ -245,7 +246,7 @@ sub _build_features
 	};
 
 	$features->{cpu_auto_scaling}{info} =
-		'CPU scaling can be automatically adjusted based on whether the charger is plugged in. Requires status feature from Power module.';
+		'CPU scaling can be automatically adjusted based on whether the charger is plugged in. Requires status feature from Power module and cpu_scaling feature from this module.';
 	$features->{cpu_auto_scaling}{config} = {
 		%{$features->{cpu_auto_scaling}{config} // {}},
 		ac => {
