@@ -10,18 +10,26 @@ use parent 'PCRD::Module::Performance';
 
 ### MEMORY
 
+sub prepare_memory
+{
+	my ($self, $feature) = @_;
+
+	@{$feature->{vars}{files}} = glob $feature->{config}{pattern};
+}
+
 sub check_memory
 {
 	my ($self, $feature) = @_;
 
-	return -r $feature->{config}{file};
+	return @{$feature->{vars}{files}} == 1
+		&& -r $feature->{vars}{files}[0];
 }
 
 sub get_memory
 {
 	my ($self, $feature) = @_;
 
-	my @lines = PCRD::Util::slurp($feature->{config}{file});
+	my @lines = PCRD::Util::slurp($feature->{vars}{files}[0]);
 
 	my %data;
 	foreach my $line (@lines) {
@@ -41,18 +49,26 @@ sub get_memory
 
 ### SWAP
 
+sub prepare_swap
+{
+	my ($self, $feature) = @_;
+
+	@{$feature->{vars}{files}} = glob $feature->{config}{pattern};
+}
+
 sub check_swap
 {
 	my ($self, $feature) = @_;
 
-	return -r $feature->{config}{file};
+	return @{$feature->{vars}{files}} == 1
+		&& -r $feature->{vars}{files}[0];
 }
 
 sub get_swap
 {
 	my ($self, $feature) = @_;
 
-	my @lines = PCRD::Util::slurp($feature->{config}{file});
+	my @lines = PCRD::Util::slurp($feature->{vars}{files}[0]);
 
 	my %data;
 	foreach my $line (@lines) {
@@ -104,11 +120,19 @@ sub get_storage
 
 ### CPU
 
+sub prepare_cpu
+{
+	my ($self, $feature) = @_;
+
+	@{$feature->{vars}{files}} = glob $feature->{config}{pattern};
+}
+
 sub check_cpu
 {
 	my ($self, $feature) = @_;
 
-	return -r $feature->{config}{file};
+	return @{$feature->{vars}{files}} == 1
+		&& -r $feature->{vars}{files}[0];
 }
 
 sub init_cpu
@@ -119,7 +143,7 @@ sub init_cpu
 	my $timer = IO::Async::Timer::Periodic->new(
 		interval => $self->{pcrd}{probe_interval},
 		on_tick => sub {
-			my @lines = PCRD::Util::slurp($feature->{config}{file});
+			my @lines = PCRD::Util::slurp($feature->{vars}{files}[0]);
 			my @cols;
 			foreach my $line (@lines) {
 				next unless $line =~ /^cpu\b/i;
@@ -151,25 +175,34 @@ sub get_cpu
 
 ### CPU SCALING
 
+sub prepare_cpu_scaling
+{
+	my ($self, $feature) = @_;
+
+	@{$feature->{vars}{files}} = glob $feature->{config}{pattern};
+}
+
 sub check_cpu_scaling
 {
 	my ($self, $feature) = @_;
 
-	return -r $feature->{config}{file} && -w $feature->{config}{file};
+	return @{$feature->{vars}{files}} == 1
+		&& -r $feature->{vars}{files}[0]
+		&& -w $feature->{vars}{files}[0];
 }
 
 sub get_cpu_scaling
 {
 	my ($self, $feature) = @_;
 
-	return PCRD::Util::slurp_1($feature->{config}{file});
+	return PCRD::Util::slurp_1($feature->{vars}{files}[0]);
 }
 
 sub set_cpu_scaling
 {
 	my ($self, $feature, $value) = @_;
 
-	PCRD::Util::spew($feature->{config}{file}, $value);
+	PCRD::Util::spew($feature->{vars}{files}[0], $value);
 	return $self->get_cpu_scaling($feature);
 }
 
@@ -223,8 +256,8 @@ sub _build_features
 	$features->{memory}{info} = 'System memory is usually found in a file located under /proc directory';
 	$features->{memory}{config} = {
 		%{$features->{memory}{config} // {}},
-		file => {
-			desc => 'file path',
+		pattern => {
+			desc => 'glob file pattern',
 			value => '/proc/meminfo',
 		},
 	};
@@ -233,8 +266,8 @@ sub _build_features
 		'Swap memory is found in a file usually located under /proc directory (same as system memory)';
 	$features->{swap}{config} = {
 		%{$features->{swap}{config} // {}},
-		file => {
-			desc => 'file path',
+		pattern => {
+			desc => 'glob file pattern',
 			value => '/proc/meminfo',
 		},
 	};
@@ -251,8 +284,8 @@ sub _build_features
 	$features->{cpu}{info} = 'CPU usage is calculated from data found in a file usually located under /proc diretory';
 	$features->{cpu}{config} = {
 		%{$features->{cpu}{config} // {}},
-		file => {
-			desc => 'file path',
+		pattern => {
+			desc => 'glob file pattern',
 			value => '/proc/stat',
 		},
 	};
@@ -260,8 +293,8 @@ sub _build_features
 	$features->{cpu_scaling}{info} = 'CPU scaling is found in a file usually located under /sys directory';
 	$features->{cpu_scaling}{config} = {
 		%{$features->{cpu_scaling}{config} // {}},
-		file => {
-			desc => 'file path',
+		pattern => {
+			desc => 'glob file pattern',
 			value => '/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor',
 		},
 	};

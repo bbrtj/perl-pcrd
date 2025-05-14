@@ -16,7 +16,7 @@ $pcrd->create_daemon(
 		all_features => 0,
 		cpu => {
 			enabled => 1,
-			file => 't/mock/proc/stat',
+			pattern => 't/mock/proc/stat',
 		},
 	},
 );

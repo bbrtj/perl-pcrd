@@ -18,7 +18,7 @@ $pcrd->create_daemon(
 		all_features => 0,
 		cpu_scaling => {
 			enabled => 1,
-			file => $pcrd->prepare_tmpfile('scaling', get_scaling),
+			pattern => $pcrd->prepare_tmpfile('scaling', get_scaling),
 		},
 	},
 );

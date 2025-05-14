@@ -15,7 +15,7 @@ $pcrd->create_daemon(
 		all_features => 0,
 		swap => {
 			enabled => 1,
-			file => 't/mock/proc/meminfo',
+			pattern => 't/mock/proc/meminfo',
 		},
 	},
 );
