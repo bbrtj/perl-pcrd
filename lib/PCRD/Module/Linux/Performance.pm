@@ -3,6 +3,7 @@ package PCRD::Module::Linux::Performance;
 use v5.14;
 use warnings;
 
+use List::Util qw(sum);
 use IO::Async::Timer::Periodic;
 
 use parent 'PCRD::Module::Performance';
@@ -110,22 +111,42 @@ sub check_cpu
 	return -r $feature->{config}{file};
 }
 
+sub init_cpu
+{
+	my ($self, $feature) = @_;
+
+	$feature->{vars}{history} //= [];
+	my $timer = IO::Async::Timer::Periodic->new(
+		interval => $self->{pcrd}{probe_interval},
+		on_tick => sub {
+			my @lines = PCRD::Util::slurp($feature->{config}{file});
+			my @cols;
+			foreach my $line (@lines) {
+				next unless $line =~ /^cpu\b/i;
+				@cols = split /\s+/, $line;
+				last;
+			}
+
+			if (@cols >= 5) {
+				unshift @{$feature->{vars}{history}}, ($cols[1] + $cols[2] + $cols[3]) / $cols[4];
+				@{$feature->{vars}{history}} = grep { defined } @{$feature->{vars}{history}}[0 .. 2];
+			}
+		},
+	);
+
+	$timer->start;
+	$self->{pcrd}{loop}->add($timer);
+}
+
 sub get_cpu
 {
 	my ($self, $feature) = @_;
 
-	my @lines = PCRD::Util::slurp($feature->{config}{file});
-	my @cols;
-	foreach my $line (@lines) {
-		next unless $line =~ /^cpu\b/i;
-		@cols = split /\s+/, $line;
-		last;
-	}
+	my $count = @{$feature->{vars}{history}};
+	return -1
+		unless $count > 0;
 
-	return ($cols[1] + $cols[2] + $cols[3]) / $cols[4]
-		if @cols >= 5;
-
-	die 'could not correctly fetch cpu usage';
+	return sum(@{$feature->{vars}{history}}) / $count;
 }
 
 ### CPU SCALING

@@ -10,6 +10,7 @@ use PCRDTest;
 
 my $pcrd = PCRDTest->new;
 $pcrd->create_daemon(
+	probe_interval => 0.01,
 	Performance => {
 		enabled => 1,
 		all_features => 0,

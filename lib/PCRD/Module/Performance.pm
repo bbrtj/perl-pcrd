@@ -17,6 +17,7 @@ sub check_storage { ... }
 sub get_storage { ... }
 
 sub check_cpu { ... }
+sub init_cpu { ... }
 sub get_cpu { ... }
 
 sub check_cpu_scaling { ... }
@@ -43,7 +44,7 @@ sub _build_features
 		},
 		cpu => {
 			desc => 'Get current cpu utilization',
-			mode => 'r',
+			mode => 'ir',
 		},
 		cpu_scaling => {
 			desc => 'Get current cpu frequency scaling governor',
