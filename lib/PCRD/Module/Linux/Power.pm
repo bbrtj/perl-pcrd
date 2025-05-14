@@ -112,8 +112,9 @@ sub get_battery_life
 	my $min = $feature->{vars}{history}[0];
 	return -1 if $max == $min;
 
+	# actually, $count - 1 intervals have passed, not $count
 	my $used = $max - $min;
-	my $seconds = $self->{pcrd}{probe_interval} * $count;
+	my $seconds = $self->{pcrd}{probe_interval} * ($count - 1);
 
 	return int($min / ($used / $seconds) / 60);
 }
@@ -164,7 +165,7 @@ sub set_charge_threshold
 		PCRD::Util::spew($file, $vals[1]);
 	}
 
-	return $self->get_charge_threshold;
+	return $self->get_charge_threshold($feature);
 }
 
 sub _build_features

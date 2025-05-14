@@ -10,6 +10,7 @@ use Test2::Tools::Basic;
 use Test2::Tools::Compare;
 use IO::Socket::UNIX;
 use IO::Async::Stream;
+use IO::Async::Timer::Countdown;
 use PCRD;
 use PCRD::Config::Memory;
 
@@ -144,7 +145,19 @@ sub run_tests
 
 sub start
 {
-	my ($self) = @_;
+	my ($self, $timeout) = @_;
+	$timeout //= 0.5;
+
+	if ($timeout) {
+		$self->{pcrd}{loop}->add(
+			IO::Async::Timer::Countdown->new(
+				delay => $timeout,
+				on_expire => sub {
+					$self->stop;
+				},
+			)->start
+		);
+	}
 
 	$self->{pcrd}->start;
 }
