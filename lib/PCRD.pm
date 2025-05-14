@@ -222,7 +222,7 @@ sub start
 {
 	my ($self) = @_;
 
-	die "Your system is not capable of running all the specified modules\n"
+	die "PCRD is not capable of running on this system with current configuration\n"
 		unless $self->check_modules;
 
 	foreach my $module (keys %{$self->{modules}}) {
