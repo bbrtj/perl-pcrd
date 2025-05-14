@@ -153,8 +153,9 @@ sub add_test_timer
 
 sub start
 {
-	my ($self, $timeout) = @_;
+	my ($self, $timeout, $finalization_timeout) = @_;
 	$timeout //= 0.5;
+	$finalization_timeout //= 0.05;
 
 	# test timers will be removed after $timeout, then the loop will be given
 	# additional 0.05 sec to respond to all signals
@@ -172,7 +173,7 @@ sub start
 
 		$self->loop->add(
 			IO::Async::Timer::Countdown->new(
-				delay => $timeout + 0.05,
+				delay => $timeout + $finalization_timeout,
 				on_expire => sub {
 					$self->stop;
 				},

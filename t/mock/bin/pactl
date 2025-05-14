@@ -1,0 +1,50 @@
+#!/usr/bin/env perl
+
+use strict;
+use autodie;
+
+my $state = 't/mock/bin/pactl-state';
+my $value;
+read_state();
+
+sub write_state
+{
+	open my $fh, '>', $state;
+	print {$fh} $value;
+}
+
+sub reset_state
+{
+	$value = 50;
+	write_state;
+}
+
+sub read_state
+{
+	if (!-e $state) {
+		reset_state;
+	}
+	else {
+		open my $fh, '<', $state;
+		$value = readline $fh;
+		chomp $value;
+	}
+}
+
+if ($ARGV[0] eq 'info') {
+	reset_state;
+	print 'ready to mock';
+}
+elsif ($ARGV[0] eq 'get-sink-volume' && $ARGV[1] eq '@DEFAULT_SINK@') {
+	print "volume is $value%, I repeat, $value%";
+}
+elsif ($ARGV[0] eq 'set-sink-volume' && $ARGV[1] eq '@DEFAULT_SINK@' && $ARGV[2]) {
+	my $arg = $ARGV[2];
+	$arg =~ tr/%//;
+	$value += $arg;
+	write_state;
+}
+else {
+	die 'no idea how to handle that';
+}
+
