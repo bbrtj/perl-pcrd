@@ -9,8 +9,8 @@ use PCRDTest;
 # This tests whether the Performance module's cpu_auto_scaling works
 ################################################################################
 
-my $status = !!1;
-sub get_status { qw(Discharging Charging) [$status] }
+my $charging = !!1;
+sub get_charging { qw(Discharging Charging) [$charging] }
 my $scaling = 0;
 sub get_scaling { qw(on_ac on_battery) [$scaling % 2] }
 
@@ -20,9 +20,9 @@ $pcrd->create_daemon(
 	Power => {
 		enabled => 1,
 		all_features => 0,
-		status => {
+		charging => {
 			enabled => 1,
-			pattern => $pcrd->prepare_tmpfile('status', get_status),
+			pattern => $pcrd->prepare_tmpfile('charging', get_charging),
 		},
 	},
 	Performance => {
@@ -44,9 +44,9 @@ $pcrd->add_test_timer(
 	IO::Async::Timer::Countdown->new(
 		delay => 0.07,
 		on_expire => sub {
-			$status = !$status;
+			$charging = !$charging;
 			$scaling++;
-			$pcrd->update('status', get_status);
+			$pcrd->update('charging', get_charging);
 		},
 	)->start
 );

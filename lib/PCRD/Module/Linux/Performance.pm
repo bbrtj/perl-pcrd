@@ -180,8 +180,8 @@ sub check_cpu_auto_scaling
 	return !!0 unless $self->feature('cpu_scaling');
 	return !!0 unless $self->feature('cpu_scaling')->check;
 	return !!0 unless $self->{pcrd}{modules}{Power};
-	return !!0 unless $self->{pcrd}{modules}{Power}->feature('status');
-	return !!0 unless $self->{pcrd}{modules}{Power}->feature('status')->check;
+	return !!0 unless $self->{pcrd}{modules}{Power}->feature('charging');
+	return !!0 unless $self->{pcrd}{modules}{Power}->feature('charging')->check;
 	return !!1;
 }
 
@@ -190,7 +190,7 @@ sub init_cpu_auto_scaling
 	my ($self, $feature) = @_;
 
 	my $scaling = $self->feature('cpu_scaling');
-	my $charging = $self->{pcrd}{modules}{Power}->feature('status');
+	my $charging = $self->{pcrd}{modules}{Power}->feature('charging');
 
 	my $timer = IO::Async::Timer::Periodic->new(
 		interval => $self->{pcrd}{probe_interval},
@@ -267,7 +267,7 @@ sub _build_features
 	};
 
 	$features->{cpu_auto_scaling}{info} =
-		'CPU scaling can be automatically adjusted based on whether the charger is plugged in. Requires status feature from Power module and cpu_scaling feature from this module.';
+		'CPU scaling can be automatically adjusted based on whether the charger is plugged in. Requires charging feature from Power module and cpu_scaling feature from this module.';
 	$features->{cpu_auto_scaling}{config} = {
 		%{$features->{cpu_auto_scaling}{config} // {}},
 		ac => {

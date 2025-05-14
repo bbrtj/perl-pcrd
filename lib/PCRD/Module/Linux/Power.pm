@@ -40,9 +40,9 @@ sub get_capacity
 	return $capacity_sum / $capacity_count;
 }
 
-### STATUS
+### CHARGING
 
-sub check_status
+sub check_charging
 {
 	my ($self, $feature) = @_;
 
@@ -50,14 +50,14 @@ sub check_status
 	return @files > 0 && PCRD::Util::all { -r } @files;
 }
 
-sub init_status
+sub init_charging
 {
 	my ($self, $feature) = @_;
 
 	$feature->{vars}{files} = [glob $feature->{config}{pattern}];
 }
 
-sub get_status
+sub get_charging
 {
 	my ($self, $feature) = @_;
 
@@ -71,9 +71,58 @@ sub get_status
 	return $any_charging;
 }
 
-### BATTERY LIFE
+### CHARGING THRESHOLD
 
-sub check_battery_life
+sub check_charging_threshold
+{
+	my ($self, $feature) = @_;
+
+	my @start_files = glob $feature->{config}{start_pattern};
+	my @stop_files = glob $feature->{config}{stop_pattern};
+	return @start_files > 0 && @stop_files > 0 && PCRD::Util::all { -r && -w } @start_files, @stop_files;
+}
+
+sub init_charging_threshold
+{
+	my ($self, $feature) = @_;
+
+	$feature->{vars}{start_files} = [glob $feature->{config}{start_pattern}];
+	$feature->{vars}{stop_files} = [glob $feature->{config}{stop_pattern}];
+}
+
+sub get_charging_threshold
+{
+	my ($self, $feature) = @_;
+
+	# pcrd doesn't care if the values are all over the place, takes min and max
+	my $start_value = min map { PCRD::Util::slurp_1($_) } @{$feature->{vars}{start_files}};
+	my $stop_value = max map { PCRD::Util::slurp_1($_) } @{$feature->{vars}{stop_files}};
+
+	return "$start_value-$stop_value";
+}
+
+sub set_charging_threshold
+{
+	my ($self, $feature, $value) = @_;
+
+	my @vals = split /-/, $value;
+	die "invalid threshold value format"
+		unless (grep { defined && looks_like_number($_) && $_ >= 0 && $_ <= 100 } @vals) == 2;
+
+	foreach my $file (@{$feature->{vars}{start_files}}) {
+		PCRD::Util::spew($file, $vals[0]);
+	}
+
+	foreach my $file (@{$feature->{vars}{stop_files}}) {
+		PCRD::Util::spew($file, $vals[1]);
+	}
+
+	return $self->get_charging_threshold($feature);
+}
+
+### LIFE
+
+sub check_life
 {
 	my ($self, $feature) = @_;
 
@@ -81,7 +130,7 @@ sub check_battery_life
 	return @files > 0 && PCRD::Util::all { -r } @files;
 }
 
-sub init_battery_life
+sub init_life
 {
 	my ($self, $feature) = @_;
 
@@ -101,7 +150,7 @@ sub init_battery_life
 	$self->{pcrd}{loop}->add($timer);
 }
 
-sub get_battery_life
+sub get_life
 {
 	my ($self, $feature) = @_;
 
@@ -119,55 +168,6 @@ sub get_battery_life
 	return int($min / ($used / $seconds) / 60);
 }
 
-### CHARGE THRESHOLD
-
-sub check_charge_threshold
-{
-	my ($self, $feature) = @_;
-
-	my @start_files = glob $feature->{config}{start_pattern};
-	my @stop_files = glob $feature->{config}{stop_pattern};
-	return @start_files > 0 && @stop_files > 0 && PCRD::Util::all { -r && -w } @start_files, @stop_files;
-}
-
-sub init_charge_threshold
-{
-	my ($self, $feature) = @_;
-
-	$feature->{vars}{start_files} = [glob $feature->{config}{start_pattern}];
-	$feature->{vars}{stop_files} = [glob $feature->{config}{stop_pattern}];
-}
-
-sub get_charge_threshold
-{
-	my ($self, $feature) = @_;
-
-	# pcrd doesn't care if the values are all over the place, takes min and max
-	my $start_value = min map { PCRD::Util::slurp_1($_) } @{$feature->{vars}{start_files}};
-	my $stop_value = max map { PCRD::Util::slurp_1($_) } @{$feature->{vars}{stop_files}};
-
-	return "$start_value-$stop_value";
-}
-
-sub set_charge_threshold
-{
-	my ($self, $feature, $value) = @_;
-
-	my @vals = split /-/, $value;
-	die "invalid threshold value format"
-		unless (grep { defined && looks_like_number($_) && $_ >= 0 && $_ <= 100 } @vals) == 2;
-
-	foreach my $file (@{$feature->{vars}{start_files}}) {
-		PCRD::Util::spew($file, $vals[0]);
-	}
-
-	foreach my $file (@{$feature->{vars}{stop_files}}) {
-		PCRD::Util::spew($file, $vals[1]);
-	}
-
-	return $self->get_charge_threshold($feature);
-}
-
 sub _build_features
 {
 	my ($self) = @_;
@@ -183,27 +183,18 @@ sub _build_features
 		},
 	};
 
-	$features->{status}{info} = 'Battery status is usually found in a file located under /sys directory';
-	$features->{status}{config} = {
-		%{$features->{status}{config} // {}},
+	$features->{charging}{info} = 'Battery charging status is usually found in a file located under /sys directory';
+	$features->{charging}{config} = {
+		%{$features->{charging}{config} // {}},
 		pattern => {
 			desc => 'glob file pattern',
 			value => '/sys/class/power_supply/BAT*/energy_now',
 		},
 	};
 
-	$features->{battery_life}{info} = 'Battery life can be calculated a file usually located under /sys directory';
-	$features->{battery_life}{config} = {
-		%{$features->{battery_life}{config} // {}},
-		pattern => {
-			desc => 'glob file pattern',
-			value => '/sys/class/power_supply/BAT*/energy_now',
-		},
-	};
-
-	$features->{charge_threshold}{info} = 'Charge thresholds are usually found in files located under /sys directory';
-	$features->{charge_threshold}{config} = {
-		%{$features->{charge_threshold}{config} // {}},
+	$features->{charging_threshold}{info} = 'Charge thresholds are usually found in files located under /sys directory';
+	$features->{charging_threshold}{config} = {
+		%{$features->{charging_threshold}{config} // {}},
 		start_pattern => {
 			desc => 'glob file pattern',
 			value => '/sys/class/power_supply/BAT*/charge_start_threshold',
@@ -211,6 +202,15 @@ sub _build_features
 		stop_pattern => {
 			desc => 'glob file pattern',
 			value => '/sys/class/power_supply/BAT*/charge_stop_threshold',
+		},
+	};
+
+	$features->{life}{info} = 'Battery life can be calculated a file usually located under /sys directory';
+	$features->{life}{config} = {
+		%{$features->{life}{config} // {}},
+		pattern => {
+			desc => 'glob file pattern',
+			value => '/sys/class/power_supply/BAT*/energy_now',
 		},
 	};
 

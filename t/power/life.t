@@ -17,7 +17,7 @@ $pcrd->create_daemon(
 	Power => {
 		enabled => 1,
 		all_features => 0,
-		battery_life => {
+		life => {
 			enabled => 1,
 			pattern => $pcrd->prepare_tmpfile('energy', $energy),
 		},
@@ -32,7 +32,7 @@ $pcrd->add_test_timer(
 			$pcrd->update('energy', $energy);
 
 			if (++$ticks > 6) {
-				$pcrd->test_message(['Power', 'battery_life', 'r'], sub { $_ >= 20 && $_ <= 21 });
+				$pcrd->test_message(['Power', 'life', 'r'], sub { $_ >= 20 && $_ <= 21 });
 			}
 		},
 	)->start

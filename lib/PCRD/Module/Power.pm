@@ -11,18 +11,18 @@ sub check_capacity { ... }
 sub init_capacity { ... }
 sub get_capacity { ... }
 
-sub check_status { ... }
-sub init_status { ... }
-sub get_status { ... }
+sub check_charging { ... }
+sub init_charging { ... }
+sub get_charging { ... }
 
-sub check_battery_life { ... }
-sub init_battery_life { ... }
-sub get_battery_life { ... }
+sub check_charging_threshold { ... }
+sub init_charging_threshold { ... }
+sub get_charging_threshold { ... }
+sub set_charging_threshold { ... }
 
-sub check_charge_threshold { ... }
-sub init_charge_threshold { ... }
-sub get_charge_threshold { ... }
-sub set_charge_threshold { ... }
+sub check_life { ... }
+sub init_life { ... }
+sub get_life { ... }
 
 sub _build_features
 {
@@ -31,17 +31,17 @@ sub _build_features
 			desc => 'Current battery percent capacity',
 			mode => 'ir',
 		},
-		status => {
+		charging => {
 			desc => 'Current charging status',
 			mode => 'ir',
 		},
-		battery_life => {
+		charging_threshold => {
+			desc => 'Battery charging start and stop threshold (start-stop)',
+			mode => 'irw',
+		},
+		life => {
 			desc => 'Current battery life (minutes)',
 			mode => 'ir',
-		},
-		charge_threshold => {
-			desc => 'Battery charge start and stop threshold (start-stop)',
-			mode => 'irw',
 		},
 	};
 }
