@@ -68,9 +68,13 @@ sub prepare
 sub check
 {
 	my ($self) = @_;
-	my $check_method = "check_$self->{name}";
+	my $check_method = $self->{module}->can("check_$self->{name}");
 
-	return $self->{module}->$check_method($self);
+	if ($check_method) {
+		return $self->{module}->$check_method($self);
+	}
+
+	return !!1;
 }
 
 # init feature for operation (done after checking)
