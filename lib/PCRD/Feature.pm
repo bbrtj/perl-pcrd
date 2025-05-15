@@ -4,10 +4,11 @@ use v5.14;
 use warnings;
 use Scalar::Util qw(weaken);
 
+use parent 'PCRD::ConfiguredObject';
+
 sub new
 {
 	my ($class, $module, $name, $init_hash) = @_;
-
 	my %args = (
 		module => $module,
 		name => $name,
@@ -19,18 +20,18 @@ sub new
 		vars => {},
 	);
 
-	my $self = bless \%args, $class;
+	my $self = $class->SUPER::new(%args);
 	weaken $self->{module};
 
-	$self->_load_config;
 	return $self;
 }
 
 sub _load_config
 {
 	my ($self) = @_;
+	$self->SUPER::_load_config('module');
 
-	$self->{_config} = $self->{module}{_config}->clone(
+	$self->{_config} = $self->{_config}->clone(
 		prefix => [@{$self->{module}{_config}{prefix}}, $self->{name}]
 	);
 

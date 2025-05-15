@@ -6,26 +6,26 @@ use Scalar::Util qw(weaken);
 
 use PCRD::Feature;
 
+use parent 'PCRD::ConfiguredObject';
+
 use constant name => undef;
 
 sub new
 {
-	my ($class, %args) = @_;
+	my $self = shift->SUPER::new(@_);
 
-	$args{pcrd} // die 'pcrd is required';
-
-	my $self = bless \%args, $class;
+	$self->{pcrd} // die 'pcrd is required';
 	weaken $self->{pcrd};
 
-	$self->_load_config;
 	return $self;
 }
 
 sub _load_config
 {
 	my ($self) = @_;
+	$self->SUPER::_load_config;
 
-	$self->{_config} //= $self->{pcrd}{_config}->clone(prefix => [$self->name]);
+	$self->{_config} = $self->{_config}->clone(prefix => [$self->name]);
 	$self->{config}{all_features} = $self->{_config}->get_value('all_features', 1);
 }
 

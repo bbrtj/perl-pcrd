@@ -9,9 +9,10 @@ use IO::Async::Loop;
 use Scalar::Util qw(looks_like_number);
 use English;
 
-use PCRD::Config::File;
 use PCRD::Util;
 use PCRD::Module;
+
+use parent 'PCRD::ConfiguredObject';
 
 # socket constants (vars for easier interpolation)
 my $ps = "\t";    # protocol separator
@@ -20,11 +21,9 @@ my $err = 'err';    # error
 
 sub new
 {
-	my ($class, %args) = @_;
-	my $self = bless \%args, $class;
+	my $self = shift->SUPER::new(@_);
 
 	$self->{loop} = IO::Async::Loop->new;
-	$self->_load_config;
 	$self->_load_modules;
 	return $self;
 }
@@ -32,8 +31,8 @@ sub new
 sub _load_config
 {
 	my ($self) = @_;
+	$self->SUPER::_load_config;
 
-	$self->{_config} //= PCRD::Config::File->new(no_load => $self->{no_config});
 	$self->{probe_interval} = $self->{_config}->get_value('probe_interval', 10);
 	$self->{socket} = $self->{_config}->get_value('socket', {});
 	$self->{socket}{file} //= '/tmp/pcrd.sock';

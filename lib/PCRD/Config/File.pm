@@ -12,6 +12,9 @@ sub dump_config
 	my ($self) = @_;
 
 	my $filename = $self->{filename} // $ENV{PCRD_CONFIG} // "$ENV{HOME}/.pcrd";
+	die "config file $filename already exists!\n"
+		if -e $filename;
+
 	PCRD::Util::spew($filename, join '', readline DATA);
 
 	# TODO: roll DATA back to previous position to allow reuse
