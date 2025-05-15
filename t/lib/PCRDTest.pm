@@ -12,6 +12,7 @@ use IO::Socket::UNIX;
 use IO::Async::Stream;
 use IO::Async::Timer::Countdown;
 use PCRD;
+use PCRD::Client;
 use PCRD::Config::Memory;
 
 sub new
@@ -57,35 +58,30 @@ sub create_daemon
 	return if $self->{pcrd};
 
 	(undef, $config{socket}{file}) = tempfile('sockXXXX', DIR => $self->{dir}, OPEN => 0);
-
-	$self->{pcrd} = PCRD->new(
-		_config => PCRD::Config::Memory->new(
-			values => \%config,
-		)
+	my $memory_config = PCRD::Config::Memory->new(
+		values => \%config,
 	);
+
+	$self->{pcrd} = PCRD->new(_config => $memory_config);
 
 	# early register socket, so that it will be created for the client
 	$self->{pcrd}->_register_listener;
-	$self->_create_client($config{socket}{file});
+	$self->_create_client($memory_config);
 
 	return $self;
 }
 
 sub _create_client
 {
-	my ($self, $socket_file) = @_;
+	my ($self, $memory_config) = @_;
 
-	my $socket = IO::Socket::UNIX->new(
-		Type => SOCK_STREAM,
-		Peer => $socket_file,
-	) or die "Cannot create test socket - $IO::Socket::errstr\n";
+	my $client = PCRD::Client->new(_config => $memory_config);
 
 	$self->{msgs}{got} = [];
 	$self->{msgs}{expected} = [];
 
-	$self->{client} = IO::Async::Stream->new(
-		handle => $socket,
-		on_read => sub {
+	$self->{client} = $client->setup(
+		sub {
 			my ($stream, $buffref, $eof) = @_;
 
 			while ($$buffref =~ s/^(.*)\n//) {
