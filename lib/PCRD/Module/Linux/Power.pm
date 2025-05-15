@@ -200,7 +200,7 @@ sub _build_features
 		%{$features->{charging}{config} // {}},
 		pattern => {
 			desc => 'glob file pattern',
-			value => '/sys/class/power_supply/BAT*/energy_now',
+			value => '/sys/class/power_supply/BAT*/status',
 		},
 	};
 
