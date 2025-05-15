@@ -27,9 +27,9 @@ $pcrd->add_test_timer(
 	IO::Async::Timer::Periodic->new(
 		interval => 0.04,
 		on_tick => sub {
-			$pcrd->test_message(['Performance', 'cpu_scaling', 'r'], get_scaling);
+			$pcrd->test_message(['Performance', 'cpu_scaling'], get_scaling);
 			$scaling++;
-			$pcrd->test_message(['Performance', 'cpu_scaling', 'w', get_scaling], 1);
+			$pcrd->test_message(['Performance', 'cpu_scaling', get_scaling], 1);
 		},
 	)->start
 );

@@ -75,35 +75,29 @@ sub _create_client
 {
 	my ($self, $memory_config) = @_;
 
-	my $client = PCRD::Client->new(_config => $memory_config);
+	$self->{client} = PCRD::Client->new(_config => $memory_config);
 
 	$self->{msgs}{got} = [];
 	$self->{msgs}{expected} = [];
 
-	$self->{client} = $client->setup(
-		sub {
-			my ($stream, $buffref, $eof) = @_;
-
-			while ($$buffref =~ s/^(.*)\n//) {
-				my ($status, $data) = split /\t/, $1;
-				push @{$self->{msgs}{got}}, [$status eq 'ok', $data];
+	$self->loop->add(
+		$self->{client}->setup(
+			sub {
+				my ($ok, $data) = @_;
+				push @{$self->{msgs}{got}}, [$ok, $data];
 			}
-
-			return 0;
-		}
+		)
 	);
-
-	$self->loop->add($self->{client});
 }
 
 sub test_message
 {
 	my ($self, $args, $expected, $name_extra) = @_;
 
-	my $name = join('.', @{$args}[0 .. 2]) . ' ok';
+	my $name = join('.', @{$args}) . ' ok';
 	$name .= " ($name_extra)" if defined $name_extra;
 
-	$self->{client}->write(join("\t", @$args) . "\n");
+	$self->{client}->send(@$args);
 	push @{$self->{msgs}{expected}}, [$expected, $name];
 }
 

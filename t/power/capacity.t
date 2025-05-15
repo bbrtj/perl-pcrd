@@ -28,7 +28,7 @@ $pcrd->add_test_timer(
 		on_tick => sub {
 			$capacity -= 11;
 			$pcrd->update('capacity', $capacity);
-			$pcrd->test_message(['Power', 'capacity', 'r'], $capacity);
+			$pcrd->test_message(['Power', 'capacity'], $capacity);
 		},
 	)->start
 );

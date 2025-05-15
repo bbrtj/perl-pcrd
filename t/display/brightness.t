@@ -28,10 +28,10 @@ $pcrd->add_test_timer(
 	IO::Async::Timer::Periodic->new(
 		interval => 0.04,
 		on_tick => sub {
-			$pcrd->test_message(['Display', 'brightness', 'r'], int(log($current) / log($max) * 100) / 100);
-			$pcrd->test_message(['Display', 'brightness', 'w', 1], 1);
-			$pcrd->test_message(['Display', 'brightness', 'r'], int(log($current) / log($max) * 100 + 10) / 100);
-			$pcrd->test_message(['Display', 'brightness', 'w', -1], 1);
+			$pcrd->test_message(['Display', 'brightness'], int(log($current) / log($max) * 100) / 100);
+			$pcrd->test_message(['Display', 'brightness', 1], 1);
+			$pcrd->test_message(['Display', 'brightness'], int(log($current) / log($max) * 100 + 10) / 100);
+			$pcrd->test_message(['Display', 'brightness', -1], 1);
 		},
 	)->start
 );

@@ -28,8 +28,8 @@ $pcrd->add_test_timer(
 	IO::Async::Timer::Periodic->new(
 		interval => 0.04,
 		on_tick => sub {
-			$pcrd->test_message(['System', 'date', 'r'], 'd' . time);
-			$pcrd->test_message(['System', 'time', 'r'], 't' . time);
+			$pcrd->test_message(['System', 'date'], 'd' . time);
+			$pcrd->test_message(['System', 'time'], 't' . time);
 		},
 	)->start
 );

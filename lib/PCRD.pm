@@ -18,6 +18,7 @@ use parent 'PCRD::ConfiguredObject';
 my $ps = "\t";    # protocol separator
 my $ok = 'ok';    # success
 my $err = 'err';    # error
+my $eot = "\n";    # end of transmission
 
 sub new
 {
@@ -197,22 +198,22 @@ sub handle_message
 {
 	my ($self, $stream, $buffref, $eof) = @_;
 
-	while ($$buffref =~ s/^(.*)\n//) {
+	while ($$buffref =~ s/^(.*)$eot//) {
 		my ($module, $feature_name, $action, $value) = split /$ps/, $1, 4;
 
 		if (!$self->{modules}{$module}) {
-			$stream->write("${err}${ps}no module $module\n");
+			$stream->write("${err}${ps}no module $module$eot");
 			return;
 		}
 
 		my $feature = $self->{modules}{$module}->feature($feature_name);
 		if (!$feature) {
-			$stream->write("${err}${ps}module $module does not have feature $feature_name\n");
+			$stream->write("${err}${ps}module $module does not have feature $feature_name$eot");
 			return;
 		}
 
 		if (!$feature->provides($action)) {
-			$stream->write("${err}${ps}feature $feature_name from module $module does not provide action $action\n");
+			$stream->write("${err}${ps}feature $feature_name from module $module does not provide action $action$eot");
 			return;
 		}
 
@@ -223,11 +224,11 @@ sub handle_message
 
 		if ($ex) {
 			$ex =~ s/\n//g;
-			$stream->write("${err}${ps}$ex\n");
+			$stream->write("${err}${ps}$ex$eot");
 			return;
 		}
 
-		$stream->write("${ok}${ps}$result\n");
+		$stream->write("${ok}${ps}$result$eot");
 	}
 }
 

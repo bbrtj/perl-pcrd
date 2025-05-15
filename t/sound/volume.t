@@ -27,10 +27,10 @@ $pcrd->add_test_timer(
 	IO::Async::Timer::Periodic->new(
 		interval => 0.04,
 		on_tick => sub {
-			$pcrd->test_message(['Sound', 'volume', 'r'], $volume);
-			$pcrd->test_message(['Sound', 'volume', 'w', '1'], 1);
-			$pcrd->test_message(['Sound', 'volume', 'r'], $volume + 0.05);
-			$pcrd->test_message(['Sound', 'volume', 'w', '-1'], 1);
+			$pcrd->test_message(['Sound', 'volume'], $volume);
+			$pcrd->test_message(['Sound', 'volume', '1'], 1);
+			$pcrd->test_message(['Sound', 'volume'], $volume + 0.05);
+			$pcrd->test_message(['Sound', 'volume', '-1'], 1);
 		},
 	)->start
 );

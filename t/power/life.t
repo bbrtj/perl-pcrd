@@ -32,7 +32,7 @@ $pcrd->add_test_timer(
 			$pcrd->update('energy', $energy);
 
 			if (++$ticks > 6) {
-				$pcrd->test_message(['Power', 'life', 'r'], sub { $_ >= 20 && $_ <= 21 });
+				$pcrd->test_message(['Power', 'life'], sub { $_ >= 20 && $_ <= 21 });
 			}
 		},
 	)->start

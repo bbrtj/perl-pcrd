@@ -25,7 +25,7 @@ $pcrd->add_test_timer(
 	IO::Async::Timer::Periodic->new(
 		interval => 0.04,
 		on_tick => sub {
-			$pcrd->test_message(['Performance', 'cpu', 'r'], 0.030886);
+			$pcrd->test_message(['Performance', 'cpu'], 0.030886);
 		},
 	)->start
 );

@@ -29,7 +29,7 @@ $pcrd->add_test_timer(
 		on_tick => sub {
 			$charging = !$charging;
 			$pcrd->update('charging', get_charging);
-			$pcrd->test_message(['Power', 'charging', 'r'], $charging);
+			$pcrd->test_message(['Power', 'charging'], $charging);
 		},
 	)->start
 );
