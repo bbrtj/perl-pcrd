@@ -18,8 +18,9 @@ sub check_uptime
 {
 	my ($self, $feature) = @_;
 
-	return @{$feature->{vars}{files}} == 1
-		&& -r $feature->{vars}{files}[0];
+	return ['unique', 'pattern'] unless @{$feature->{vars}{files}} == 1;
+	return ['readable', 'pattern'] unless -r @{$feature->{vars}{files}}[0];
+	return undef;
 }
 
 sub get_uptime

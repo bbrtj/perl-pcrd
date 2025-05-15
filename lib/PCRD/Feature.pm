@@ -74,7 +74,7 @@ sub check
 		return $self->{module}->$check_method($self);
 	}
 
-	return !!1;
+	return undef;
 }
 
 # init feature for operation (done after checking)

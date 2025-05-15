@@ -19,14 +19,14 @@ sub check_brightness
 {
 	my ($self, $feature) = @_;
 
-	my $now_ok = @{$feature->{vars}{now_files}} == 1
-		&& -r $feature->{vars}{now_files}[0]
-		&& -w $feature->{vars}{now_files}[0];
+	return ['unique', 'now_pattern'] unless @{$feature->{vars}{now_files}} == 1;
+	return ['readable', 'now_pattern'] unless -r $feature->{vars}{now_files}[0];
+	return ['writable', 'now_pattern'] unless -w $feature->{vars}{now_files}[0];
 
-	my $max_ok = @{$feature->{vars}{max_files}} == 1
-		&& -r $feature->{vars}{max_files}[0];
+	return ['unique', 'now_pattern'] unless @{$feature->{vars}{max_files}} == 1;
+	return ['readable', 'now_pattern'] unless -r $feature->{vars}{max_files}[0];
 
-	return $now_ok && $max_ok;
+	return undef;
 }
 
 sub get_brightness

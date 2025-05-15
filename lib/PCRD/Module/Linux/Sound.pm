@@ -16,7 +16,8 @@ sub check_volume
 		@lines = PCRD::Util::slurp_command($feature->{config}{command}, 'info');
 	};
 
-	return !$ex && @lines > 0;
+	return ['command', $ex || '(returned nothing)'] unless !$ex && @lines > 0;
+	return undef;
 }
 
 sub get_volume

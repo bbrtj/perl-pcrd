@@ -21,8 +21,9 @@ sub check_capacity
 {
 	my ($self, $feature) = @_;
 
-	return @{$feature->{vars}{files}} > 0
-		&& PCRD::Util::all { -r } @{$feature->{vars}{files}};
+	return ['found', 'pattern'] unless @{$feature->{vars}{files}} > 0;
+	return ['readable', 'pattern'] unless PCRD::Util::all { -r } @{$feature->{vars}{files}};
+	return undef;
 }
 
 sub get_capacity
@@ -53,8 +54,9 @@ sub check_charging
 {
 	my ($self, $feature) = @_;
 
-	return @{$feature->{vars}{files}} > 0
-		&& PCRD::Util::all { -r } @{$feature->{vars}{files}};
+	return ['found', 'pattern'] unless @{$feature->{vars}{files}} > 0;
+	return ['readable', 'pattern'] unless PCRD::Util::all { -r } @{$feature->{vars}{files}};
+	return undef;
 }
 
 sub get_charging
@@ -85,9 +87,13 @@ sub check_charging_threshold
 {
 	my ($self, $feature) = @_;
 
-	my @start_files = @{$feature->{vars}{start_files}};
-	my @stop_files = @{$feature->{vars}{stop_files}};
-	return @start_files > 0 && @stop_files > 0 && PCRD::Util::all { -r && -w } @start_files, @stop_files;
+	return ['found', 'start_pattern'] unless @{$feature->{vars}{start_files}} > 0;
+	return ['readable', 'start_pattern'] unless PCRD::Util::all { -r } @{$feature->{vars}{start_files}};
+	return ['writable', 'start_pattern'] unless PCRD::Util::all { -w } @{$feature->{vars}{start_files}};
+	return ['found', 'stop_pattern'] unless @{$feature->{vars}{stop_files}} > 0;
+	return ['readable', 'stop_pattern'] unless PCRD::Util::all { -r } @{$feature->{vars}{stop_files}};
+	return ['writable', 'stop_pattern'] unless PCRD::Util::all { -w } @{$feature->{vars}{stop_files}};
+	return undef;
 }
 
 sub get_charging_threshold
@@ -133,8 +139,9 @@ sub check_life
 {
 	my ($self, $feature) = @_;
 
-	return @{$feature->{vars}{files}} > 0
-		&& PCRD::Util::all { -r } @{$feature->{vars}{files}};
+	return ['found', 'pattern'] unless @{$feature->{vars}{files}} > 0;
+	return ['readable', 'pattern'] unless PCRD::Util::all { -r } @{$feature->{vars}{files}};
+	return undef;
 }
 
 sub init_life

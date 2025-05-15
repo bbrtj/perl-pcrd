@@ -149,6 +149,16 @@ sub check_modules
 	my ($self) = @_;
 	my $modules = $self->{modules};
 
+	# TODO: translations?
+	state $error_text = {
+		'unique' => "Zero or multiple files found by pattern '%s'",
+		'found' => "Zero files found by pattern '%s'",
+		'readable' => "Files found by pattern '%s' are not readable",
+		'writable' => "Files found by pattern '%s' are not writable",
+		'command' => "Command from '%s' does not run: %s",
+		'dependency' => "Failure to resolve dependency on feature '%s'",
+	};
+
 	my %checklist;
 	foreach my $module (values %$modules) {
 		%checklist = (%checklist, %{$module->check});
@@ -158,11 +168,12 @@ sub check_modules
 	foreach my $item (sort keys %checklist) {
 		print "Checking '$item'... ";
 
-		my $this_success = $checklist{$item}->check;
-		$success &&= $this_success;
+		my $this_error = $checklist{$item}->check;
+		$success &&= !defined $this_error;
 
-		if (!$this_success) {
-			say 'error!';
+		if (defined $this_error) {
+			say 'ERROR!';
+			warn sprintf($error_text->{$this_error->[0]}, $this_error->[1]) . "\n";
 			warn "'$item' will not work properly with current configuration.\n";
 			warn $checklist{$item}->error_string . "\n";
 			warn "Current config:\n" . $checklist{$item}->dump_config . "\n";

@@ -70,6 +70,18 @@ sub feature
 	return $self->features->{$name};
 }
 
+sub check_dependency
+{
+	my ($self, $name) = @_;
+	my ($module, $feature) = split /\./, $name;
+
+	my $ok = $self->{pcrd}{modules}{$module}
+		&& $self->{pcrd}{modules}{$module}->feature($feature)
+		&& !defined $self->{pcrd}{modules}{$module}->feature($feature)->check;
+
+	return $ok ? undef : ['dependency', $name];
+}
+
 sub check
 {
 	my ($self) = @_;

@@ -21,8 +21,9 @@ sub check_memory
 {
 	my ($self, $feature) = @_;
 
-	return @{$feature->{vars}{files}} == 1
-		&& -r $feature->{vars}{files}[0];
+	return ['unique', 'pattern'] unless @{$feature->{vars}{files}} == 1;
+	return ['readable', 'pattern'] unless -r $feature->{vars}{files}[0];
+	return undef;
 }
 
 sub get_memory
@@ -60,8 +61,9 @@ sub check_swap
 {
 	my ($self, $feature) = @_;
 
-	return @{$feature->{vars}{files}} == 1
-		&& -r $feature->{vars}{files}[0];
+	return ['unique', 'pattern'] unless @{$feature->{vars}{files}} == 1;
+	return ['readable', 'pattern'] unless -r $feature->{vars}{files}[0];
+	return undef;
 }
 
 sub get_swap
@@ -97,7 +99,8 @@ sub check_storage
 		@lines = PCRD::Util::slurp_command($feature->{config}{command});
 	};
 
-	return !$ex && @lines > 0;
+	return ['command', $ex || '(returned nothing)'] unless !$ex && @lines > 0;
+	return undef;
 }
 
 sub get_storage
@@ -131,8 +134,9 @@ sub check_cpu
 {
 	my ($self, $feature) = @_;
 
-	return @{$feature->{vars}{files}} == 1
-		&& -r $feature->{vars}{files}[0];
+	return ['unique', 'pattern'] unless @{$feature->{vars}{files}} == 1;
+	return ['readable', 'pattern'] unless -r $feature->{vars}{files}[0];
+	return undef;
 }
 
 sub init_cpu
@@ -186,9 +190,10 @@ sub check_cpu_scaling
 {
 	my ($self, $feature) = @_;
 
-	return @{$feature->{vars}{files}} == 1
-		&& -r $feature->{vars}{files}[0]
-		&& -w $feature->{vars}{files}[0];
+	return ['unique', 'pattern'] unless @{$feature->{vars}{files}} == 1;
+	return ['readable', 'pattern'] unless -r $feature->{vars}{files}[0];
+	return ['writable', 'pattern'] unless -w $feature->{vars}{files}[0];
+	return undef;
 }
 
 sub get_cpu_scaling
@@ -206,16 +211,15 @@ sub set_cpu_scaling
 	return 1;
 }
 
+### CPU AUTO SCALING
+
 sub check_cpu_auto_scaling
 {
 	my ($self, $feature) = @_;
 
-	return !!0 unless $self->feature('cpu_scaling');
-	return !!0 unless $self->feature('cpu_scaling')->check;
-	return !!0 unless $self->{pcrd}{modules}{Power};
-	return !!0 unless $self->{pcrd}{modules}{Power}->feature('charging');
-	return !!0 unless $self->{pcrd}{modules}{Power}->feature('charging')->check;
-	return !!1;
+	$self->check_dependency('Performance.cpu_scaling');
+	$self->check_dependency('Power.charging');
+	return undef;
 }
 
 sub init_cpu_auto_scaling
