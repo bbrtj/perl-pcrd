@@ -33,10 +33,10 @@ sub _load_config
 {
 	my ($self) = @_;
 
-	$self->{_config} //= PCRD::Config::File->new;
+	$self->{_config} //= PCRD::Config::File->new(no_load => $self->{no_config});
 	$self->{probe_interval} = $self->{_config}->get_value('probe_interval', 10);
 	$self->{socket} = $self->{_config}->get_value('socket', {});
-	$self->{socket}{file} //= '/var/run/pcrd.sock';
+	$self->{socket}{file} //= '/tmp/pcrd.sock';
 	$self->{socket}{user} //= $EUID;
 	$self->{socket}{group} //= $EGID;
 	$self->{socket}{perm} //= '0660';
@@ -56,9 +56,6 @@ sub _load_modules
 		# (no modules by default)
 		push @module_list, $key;
 	}
-
-	die 'no modules specified, nothing to do'
-		unless @module_list > 0;
 
 	my @modules;
 	my @loading_errors;
@@ -139,6 +136,12 @@ sub _register_listener
 	);
 
 	$self->{listener} = $listener;
+}
+
+sub dump_config
+{
+	my ($self) = @_;
+	$self->{_config}->dump_config;
 }
 
 sub check_modules
@@ -224,6 +227,9 @@ sub start
 
 	die "PCRD is not capable of running on this system with current configuration\n"
 		unless $self->check_modules;
+
+	die 'no modules specified, nothing to do'
+		unless keys %{$self->{modules}};
 
 	foreach my $module (keys %{$self->{modules}}) {
 		$self->{modules}{$module}->init;

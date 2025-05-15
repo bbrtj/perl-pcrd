@@ -7,6 +7,16 @@ use PCRD::Util;
 
 use parent 'PCRD::Config';
 
+sub dump_config
+{
+	my ($self) = @_;
+
+	my $filename = $self->{filename} // $ENV{PCRD_CONFIG} // "$ENV{HOME}/.pcrd";
+	PCRD::Util::spew($filename, join '', readline DATA);
+
+	# TODO: roll DATA back to previous position to allow reuse
+}
+
 sub load_config
 {
 	my ($self) = @_;
@@ -45,4 +55,17 @@ sub load_config
 }
 
 1;
+
+__DATA__
+# This is a PCRD config file. Lines starting with a hash is are comments.
+# You must enable all desired modules manually with Module.enabled=1
+# configuration flag. Once a module is enabled, all of its features are enabled
+# automatically. If that's not a desired behavior, Module.all_features=0 flag
+# can be used.
+
+Power.enabled=1
+Performance.enabled=1
+Display.enabled=1
+Sound.enabled=1
+System.enabled=1
 

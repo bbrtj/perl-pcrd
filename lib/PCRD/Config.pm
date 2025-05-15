@@ -8,11 +8,14 @@ sub new
 	my ($class, %args) = @_;
 	my $self = bless \%args, $class;
 	$self->{prefix} //= [];
+	$self->{values} //= {};
 
-	$self->load_config;
+	$self->load_config
+		unless $self->{no_load};
 	return $self;
 }
 
+sub dump_config { ... }
 sub load_config { ... }
 
 sub clone
