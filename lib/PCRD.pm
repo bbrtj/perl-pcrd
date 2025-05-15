@@ -266,21 +266,19 @@ __END__
 
 =head1 NAME
 
-PCRD - New module
+PCRD - Parameters Control and Reporting Daemon
 
 =head1 SYNOPSIS
 
 	use PCRD;
 
-	# do something
+	my $daemon = $pcrd->new;
+	$daemon->start;
 
 =head1 DESCRIPTION
 
-This module lets you blah blah blah.
-
-=head1 SEE ALSO
-
-L<Some::Module>
+This module is a daemon that collects and controls some OS details and can be
+interacted with through a unix socket.
 
 =head1 AUTHOR
 

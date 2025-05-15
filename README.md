@@ -1,8 +1,11 @@
-# PCRD
-A Perl module for blah blah blah
+# Parameters Control and Reporting Daemon
+A Perl module to control local desktop environment. It is supposed to be used
+together with WMs that do not provide DE-like features like brightness control
+(like dwm).
 
 ## Code and documentation
-[PCRD on CPAN](https://metacpan.org/release/PCRD)
+Code on GitHub. Limited documentation. This module is mostly for self-use. Let
+me know if you are interested in using it yourself.
 
 ## Bugs and feature requests
 Please use the Github's issue tracker to file both bugs and feature requests.
@@ -15,5 +18,4 @@ bigger so we can talk it through.
 
 ### Author
 Bartosz Jarzyna <bbrtj.pro@gmail.com>
-
 
