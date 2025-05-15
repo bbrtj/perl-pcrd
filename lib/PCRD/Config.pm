@@ -42,7 +42,7 @@ sub get_values
 		$config = $config->{$part};
 	}
 
-	return $config;
+	return $config // {};
 }
 
 1;

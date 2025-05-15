@@ -97,6 +97,17 @@ sub check
 	return \%check_hash;
 }
 
+sub load_plugin
+{
+	my ($class, $plugin_file) = @_;
+
+	# expand ~ shortcut
+	$plugin_file =~ s/^~/$ENV{HOME}/;
+
+	do $plugin_file
+		or die "could not load plugin $plugin_file: " . ($@ || $!);
+}
+
 sub get_implementation
 {
 	my ($class, $name, $error_ref) = @_;
@@ -106,14 +117,20 @@ sub get_implementation
 		$from_cmd;
 	};
 
+	$$error_ref = ''
+		if $error_ref;
+
 	$name //= $class->name;
-	my $module_name = "PCRD::Module::${kernel}::${name}";
+	foreach my $impl ($kernel, 'Any') {
+		my $module_name = "PCRD::Module::${impl}::${name}";
 
-	local $@;
-	my $loaded = eval "require $module_name; 1";
-	$$error_ref = $@ if !$loaded && $error_ref;
+		local $@;
+		my $loaded = eval "$module_name->name; 1;" || eval "require $module_name; 1";
+		$$error_ref .= $@ if !$loaded && $error_ref;
+		return $module_name if $loaded;
+	}
 
-	return $loaded ? $module_name : undef;
+	return undef;
 }
 
 1;

@@ -61,6 +61,9 @@ sub _load_modules
 	my @loading_errors;
 
 	foreach my $module (@module_list) {
+		PCRD::Module->load_plugin($config->{$module}{plugin})
+			if $config->{$module}{plugin};
+
 		my $loaded = PCRD::Module->get_implementation($module, \my $error);
 
 		if (!$loaded) {
