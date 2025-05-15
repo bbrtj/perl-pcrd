@@ -200,24 +200,31 @@ sub module
 sub handle_message
 {
 	my ($self, $stream, $buffref, $eof) = @_;
+	my $write = sub {
+		my ($prefix, $message) = @_;
+
+		say "< $message";
+		$stream->write("${prefix}${ps}${message}$eot");
+	};
 
 	while ($$buffref =~ s/^(.*)$eot//) {
+		say "> $1";
 		my ($module, $feature_name, $action, $value) = split /$ps/, $1, 4;
 
 		if (!$self->{modules}{$module}) {
-			$stream->write("${err}${ps}no module $module$eot");
-			return;
+			$write->($err, "no module $module");
+			next;
 		}
 
 		my $feature = $self->{modules}{$module}->feature($feature_name);
 		if (!$feature) {
-			$stream->write("${err}${ps}module $module does not have feature $feature_name$eot");
-			return;
+			$write->($err, "$module $module does not have feature $feature_name");
+			next;
 		}
 
 		if (!$feature->provides($action)) {
-			$stream->write("${err}${ps}feature $feature_name from module $module does not provide action $action$eot");
-			return;
+			$write->($err, "feature $feature_name from module $module does not provide action $action");
+			next;
 		}
 
 		my $result;
@@ -227,11 +234,11 @@ sub handle_message
 
 		if ($ex) {
 			$ex =~ s/\n//g;
-			$stream->write("${err}${ps}$ex$eot");
-			return;
+			$write->($err, $ex);
+			next;
 		}
 
-		$stream->write("${ok}${ps}$result$eot");
+		$write->($ok, $result);
 	}
 }
 
@@ -249,6 +256,7 @@ sub start
 		$self->{modules}{$module}->init;
 	}
 
+	say 'starting the daemon...';
 	$self->_register_listener;
 	$self->{loop}->run;
 }

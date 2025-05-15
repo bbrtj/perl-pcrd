@@ -27,9 +27,6 @@ sub setup
 {
 	my ($self, $on_message) = @_;
 
-	die "could not connect to socket $self->{socket}{file} - server not running?"
-		unless -e $self->{socket}{file};
-
 	my $socket = IO::Socket::UNIX->new(
 		Type => SOCK_STREAM,
 		Peer => $self->{socket}{file},

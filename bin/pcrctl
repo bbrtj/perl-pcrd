@@ -6,8 +6,10 @@ use Getopt::Long;
 use Pod::Usage;
 
 my $help = !!0;
+my $logs = 'pcrd.log';
 GetOptions(
-	'h|help' => \$help
+	'h|help' => \$help,
+	'logs' => \$logs,
 ) or pod2usage(2);
 
 pod2usage(-exitval => 0, -verbose => 2, -noperldoc => 1) if $help;
@@ -42,10 +44,14 @@ sub run_daemon
 	if ($daemon) {
 		my $forked = fork;
 		die "could not fork" unless defined $forked;
-		return if $forked;
-	}
+		exit if $forked;
 
-	# TODO: redirect STDOUT / STDERR to a log file
+		require POSIX;
+		POSIX::setsid() != -1 or die "Can't start a new session: $!";
+		$0 = 'pcrd';
+		open STDOUT, '>', $logs;
+		open STDERR, '>&', STDOUT;
+	}
 
 	require PCRD;
 	my $daemon = PCRD->new;
@@ -85,6 +91,7 @@ pcrctl [options] [action]
 
 	Options:
 		--help                          show help
+		--logs FILE                     where to put daemon logs
 
 	Actions:
 		run [daemon]                    runs the program loop
