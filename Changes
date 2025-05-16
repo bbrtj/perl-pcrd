@@ -2,6 +2,7 @@ Revision history for PCRD
 
 {{$NEXT}}
 	- Fix calculation of cpu usage
+	- Add configurable time window of readings taken for battery life calculation
 
 0.001 - 2025-05-15
 	- First version

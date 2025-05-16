@@ -133,6 +133,7 @@ sub prepare_life
 	my ($self, $feature) = @_;
 
 	$feature->{vars}{files} = [glob $feature->{config}{pattern}];
+	$feature->{vars}{history_size} = int($feature->{config}{measurement_window} * 60 / $self->{pcrd}{probe_interval});
 }
 
 sub check_life
@@ -154,7 +155,7 @@ sub init_life
 		on_tick => sub {
 			unshift @{$feature->{vars}{history}},
 				sum map { PCRD::Util::slurp_1($_) } @{$feature->{vars}{files}};
-			@{$feature->{vars}{history}} = grep { defined } @{$feature->{vars}{history}}[0 .. 5];
+			splice @{$feature->{vars}{history}}, $feature->{vars}{history_size};
 		},
 	);
 
@@ -171,7 +172,7 @@ sub get_life
 
 	my $max = $feature->{vars}{history}[-1];
 	my $min = $feature->{vars}{history}[0];
-	return -1 if $max == $min;
+	return -1 if $max <= $min;
 
 	# actually, $count - 1 intervals have passed, not $count
 	my $used = $max - $min;

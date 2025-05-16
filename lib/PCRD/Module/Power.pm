@@ -39,6 +39,12 @@ sub _build_features
 		life => {
 			desc => 'Current battery life (minutes)',
 			mode => 'ir',
+			config => {
+				measurement_window => {
+					desc => 'time window (in minutes) which will be used for the calculation',
+					value => 5,
+				},
+			},
 		},
 	};
 }
