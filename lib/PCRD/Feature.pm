@@ -107,7 +107,11 @@ sub execute
 		unless $prefixes->{$action};
 
 	my $method = "$prefixes->{$action}_$self->{name}";
-	return $self->{module}->$method($self, $arg);
+	my $result = $self->{module}->$method($self, $arg);
+	$self->{execute_hook}->($action, $arg)
+		if $self->{execute_hook};
+
+	return $result;
 }
 
 sub provides
