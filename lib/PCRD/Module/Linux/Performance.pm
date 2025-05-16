@@ -217,9 +217,10 @@ sub check_cpu_auto_scaling
 {
 	my ($self, $feature) = @_;
 
-	$self->check_dependency('Performance.cpu_scaling');
-	$self->check_dependency('Power.charging');
-	return undef;
+	return
+		$self->check_dependency('Performance.cpu_scaling') //
+		$self->check_dependency('Power.charging') //
+		undef;
 }
 
 sub init_cpu_auto_scaling
