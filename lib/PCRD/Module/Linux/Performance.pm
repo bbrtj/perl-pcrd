@@ -157,7 +157,7 @@ sub init_cpu
 			my @cols = split /\s+/, $line;
 
 			unshift @{$feature->{vars}{history}}, [$cols[1] + $cols[2] + $cols[3], $cols[4]];
-			@{$feature->{vars}{history}} = grep { defined } @{$feature->{vars}{history}}[0 .. 2];
+			splice @{$feature->{vars}{history}}, 3;
 		},
 	);
 
