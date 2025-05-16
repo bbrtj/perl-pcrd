@@ -151,6 +151,7 @@ sub init_cpu
 	$feature->{vars}{history} //= [];
 	my $timer = IO::Async::Timer::Periodic->new(
 		interval => $self->{pcrd}{probe_interval},
+		reschedule => 'skip',
 		on_tick => sub {
 			my $line = PCRD::Util::slurp_1($feature->{vars}{files}[0]);
 			my @cols = split /\s+/, $line;
@@ -238,6 +239,7 @@ sub init_cpu_auto_scaling
 
 	my $timer = IO::Async::Timer::Periodic->new(
 		interval => $self->{pcrd}{probe_interval},
+		reschedule => 'skip',
 		on_tick => sub {
 			my $current = $scaling->execute('r');
 			my $wanted;

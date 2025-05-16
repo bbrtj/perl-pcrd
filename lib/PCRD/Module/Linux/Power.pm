@@ -152,6 +152,7 @@ sub init_life
 	$feature->{vars}{history} //= [];
 	my $timer = IO::Async::Timer::Periodic->new(
 		interval => $self->{pcrd}{probe_interval},
+		reschedule => 'skip',
 		on_tick => sub {
 			unshift @{$feature->{vars}{history}},
 				sum map { PCRD::Util::slurp_1($_) } @{$feature->{vars}{files}};
