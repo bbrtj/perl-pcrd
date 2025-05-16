@@ -160,6 +160,7 @@ sub check_modules
 		'writable' => "Files found by pattern '%s' are not writable",
 		'command' => "Command from '%s' does not run: %s",
 		'dependency' => "Failure to resolve dependency on feature '%s'",
+		'result' => "Unexpected result of querying the device's resource '%s'",
 	};
 
 	my %checklist;

@@ -136,6 +136,11 @@ sub check_cpu
 
 	return ['unique', 'pattern'] unless @{$feature->{vars}{files}} == 1;
 	return ['readable', 'pattern'] unless -r $feature->{vars}{files}[0];
+
+	my $line = PCRD::Util::slurp_1($feature->{vars}{files}[0]);
+	return ['content', $feature->{vars}{files}[0]]
+		unless $line =~ /^cpu\b/i && split(/\s+/, $line) >= 5;
+
 	return undef;
 }
 
@@ -147,18 +152,11 @@ sub init_cpu
 	my $timer = IO::Async::Timer::Periodic->new(
 		interval => $self->{pcrd}{probe_interval},
 		on_tick => sub {
-			my @lines = PCRD::Util::slurp($feature->{vars}{files}[0]);
-			my @cols;
-			foreach my $line (@lines) {
-				next unless $line =~ /^cpu\b/i;
-				@cols = split /\s+/, $line;
-				last;
-			}
+			my $line = PCRD::Util::slurp_1($feature->{vars}{files}[0]);
+			my @cols = split /\s+/, $line;
 
-			if (@cols >= 5) {
-				unshift @{$feature->{vars}{history}}, ($cols[1] + $cols[2] + $cols[3]) / $cols[4];
-				@{$feature->{vars}{history}} = grep { defined } @{$feature->{vars}{history}}[0 .. 2];
-			}
+			unshift @{$feature->{vars}{history}}, [$cols[1] + $cols[2] + $cols[3], $cols[4]];
+			@{$feature->{vars}{history}} = grep { defined } @{$feature->{vars}{history}}[0 .. 2];
 		},
 	);
 
@@ -170,11 +168,19 @@ sub get_cpu
 {
 	my ($self, $feature) = @_;
 
-	my $count = @{$feature->{vars}{history}};
+	my @hist = @{$feature->{vars}{history}};
 	return -1
-		unless $count > 0;
+		unless @hist > 1;
 
-	return sum(@{$feature->{vars}{history}}) / $count;
+	my ($base_working, $base_idle) = @{pop @hist};
+	my $total_working = 0;
+	my $total_idle = 0;
+	foreach my $item (@hist) {
+		$total_working += $item->[0] - $base_working;
+		$total_idle += $item->[1] - $base_idle;
+	}
+
+	return $total_working / ($total_working + $total_idle);
 }
 
 ### CPU SCALING
