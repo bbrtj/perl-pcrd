@@ -312,20 +312,6 @@ sub _build_features
 		},
 	};
 
-	$features->{cpu_auto_scaling}{info} =
-		'CPU scaling can be automatically adjusted based on whether the charger is plugged in. Requires charging feature from Power module and cpu_scaling feature from this module.';
-	$features->{cpu_auto_scaling}{config} = {
-		%{$features->{cpu_auto_scaling}{config} // {}},
-		ac => {
-			desc => 'scaling governor on AC',
-			value => 'performance',
-		},
-		battery => {
-			desc => 'scaling governor on battery',
-			value => 'powersave',
-		},
-	};
-
 	return $features;
 }
 

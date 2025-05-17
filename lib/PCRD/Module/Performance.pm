@@ -53,6 +53,18 @@ sub _build_features
 		cpu_auto_scaling => {
 			desc => 'Automatically set cpu scaling based on charging status',
 			mode => 'i',
+			info =>
+				'CPU scaling can be automatically adjusted based on whether the charger is plugged in. Requires charging feature from Power module and cpu_scaling feature from this module.',
+			config => {
+				ac => {
+					desc => 'scaling governor on AC',
+					value => 'performance',
+				},
+				battery => {
+					desc => 'scaling governor on battery',
+					value => 'powersave',
+				},
+			},
 		},
 	};
 }
