@@ -9,7 +9,7 @@ my $help = !!0;
 my $logs = 'pcrd.log';
 GetOptions(
 	'h|help' => \$help,
-	'logs' => \$logs,
+	'logs=s' => \$logs,
 ) or pod2usage(2);
 
 pod2usage(-exitval => 0, -verbose => 2, -noperldoc => 1) if $help;
