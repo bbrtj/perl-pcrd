@@ -5,6 +5,7 @@ Revision history for PCRD
 	- Add configurable time window of readings taken for battery life calculation
 	- Protect against system clock changing to the future causing the program to go into a loop
 	- Add minimal hook system, allow hooking to execution of module features
+	- Brightness and volume steps are now configurable
 
 0.001 - 2025-05-15
 	- First version

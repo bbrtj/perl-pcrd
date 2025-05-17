@@ -17,6 +17,12 @@ sub _build_features
 		volume => {
 			desc => 'Get current sound volume of the default audio sink',
 			mode => 'rw',
+			config => {
+				step => {
+					desc => 'volume will be increased / decreased by this value',
+					value => 5,
+				},
+			},
 		},
 	};
 }

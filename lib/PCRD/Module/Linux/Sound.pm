@@ -45,7 +45,7 @@ sub set_volume
 	die 'invalid direction: must be either 1 or -1 (up or down)'
 		unless $direction && $direction =~ m/^[+-]?1$/;
 
-	my $value = ($direction * 5) . '%';
+	my $value = ($direction * $feature->{config}{step}) . '%';
 	$value = "+$value" if $direction == 1;
 
 	PCRD::Util::slurp_command($feature->{config}{command}, 'set-sink-volume', '@DEFAULT_SINK@', $value);

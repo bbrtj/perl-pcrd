@@ -55,7 +55,7 @@ sub set_brightness
 		$new_curr = $direction > 0 ? 1 : 0;
 	}
 	else {
-		my $new_log_scale_curr = log($curr) + $direction * 0.1 * log($max);
+		my $new_log_scale_curr = log($curr) + $direction * ($feature->{config}{step} / 100) * log($max);
 		$new_curr = max 0, min $max, int(exp($new_log_scale_curr));
 	}
 
