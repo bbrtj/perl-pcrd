@@ -147,6 +147,12 @@ sub dump_config
 	$self->{_config}->dump_config;
 }
 
+sub explain_config
+{
+	my ($self) = @_;
+	$self->{_config}->explain_config(values %{$self->{modules}});
+}
+
 sub check_modules
 {
 	my ($self) = @_;
@@ -180,7 +186,7 @@ sub check_modules
 			warn sprintf($error_text->{$this_error->[0]}, $this_error->[1]) . "\n";
 			warn "'$item' will not work properly with current configuration.\n";
 			warn $checklist{$item}->error_string . "\n";
-			warn "Current config:\n" . $checklist{$item}->dump_config . "\n";
+			warn "Current config:\n" . $checklist{$item}->explain_config . "\n";
 			warn "\n";
 		}
 		else {
@@ -213,18 +219,18 @@ sub handle_message
 		my ($module, $feature_name, $action, $value) = split /$ps/, $1, 4;
 
 		if (!$self->{modules}{$module}) {
-			$write->($err, "no module $module");
+			$write->($err, "no module '$module'");
 			next;
 		}
 
 		my $feature = $self->{modules}{$module}->feature($feature_name);
 		if (!$feature) {
-			$write->($err, "module $module does not have feature $feature_name");
+			$write->($err, "module '$module' does not have feature '$feature_name'");
 			next;
 		}
 
 		if (!$feature->provides($action)) {
-			$write->($err, "feature $feature_name from module $module does not provide action $action");
+			$write->($err, "feature '$feature_name' from module '$module' does not provide action '$action'");
 			next;
 		}
 
@@ -288,6 +294,21 @@ PCRD - Parameters Control and Reporting Daemon
 
 This module is a daemon that collects and controls some OS details and can be
 interacted with through a unix socket.
+
+See L<pcrctl> for command line options. Quickstart:
+
+=over
+
+=item *
+
+C<pcrctl init> will create an initial configuration file with all default
+modules turned on.
+
+=item *
+
+C<pcrctl config> will list all configuration values.
+
+=back
 
 =head1 AUTHOR
 

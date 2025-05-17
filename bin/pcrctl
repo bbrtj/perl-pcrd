@@ -59,12 +59,6 @@ sub run_daemon
 	$daemon->start;
 }
 
-sub run_init
-{
-	require PCRD;
-	PCRD->new(no_config => 1)->dump_config;
-}
-
 my $action = shift;
 
 if ($action eq 'query') {
@@ -76,8 +70,13 @@ elsif ($action eq 'run') {
 	run_daemon($arg && $arg eq 'daemon');
 }
 elsif ($action eq 'init') {
-	run_init;
+	require PCRD;
+	PCRD->new(no_config => 1)->dump_config;
 	say 'initialized';
+}
+elsif ($action eq 'config') {
+	require PCRD;
+	say PCRD->new->explain_config;
 }
 
 __END__
@@ -97,6 +96,7 @@ pcrctl [options] [action]
 	Actions:
 		run [daemon]                    runs the program loop
 		init                            initializes the configuration file
+		config                          shows possible configuration values
 		query MODULE FEATURE [VALUE]    queries one of the daemon's features
 
 =head1 OPTIONS
@@ -122,6 +122,10 @@ run in the background.
 
 Initializes the configuration file, commonly found under C<~/.pcrd>. Will not
 overwrite existing configuration.
+
+=item B<config>
+
+Show a complete list of configuration values for enabled modules.
 
 =item B<query>
 
