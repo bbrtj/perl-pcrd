@@ -4,8 +4,9 @@ together with WMs that do not provide DE-like features like brightness control
 (like dwm).
 
 ## Code and documentation
-Code on GitHub. Limited documentation as a man page. This module is mostly for
-self-use. Let me know if you are interested in using it yourself.
+Code on GitHub. Limited documentation as a man page - see `man PCRD` and `man
+pcrctl`. This module is mostly for self-use. Let me know if you are interested
+in using it yourself.
 
 ## TODO
 
