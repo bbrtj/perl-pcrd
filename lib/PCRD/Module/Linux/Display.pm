@@ -43,7 +43,7 @@ sub set_brightness
 	my ($self, $feature, $direction) = @_;
 
 	die 'invalid direction: must be either 1 or -1 (up or down)'
-		unless $direction && $direction =~ m/^-?1$/;
+		unless $direction && $direction =~ m/^[+-]?1$/;
 
 	my $curr = PCRD::Util::slurp_1($feature->{vars}{now_files}[0]);
 	my $max = PCRD::Util::slurp_1($feature->{vars}{max_files}[0]);

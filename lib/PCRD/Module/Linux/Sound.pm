@@ -43,7 +43,7 @@ sub set_volume
 	my ($self, $feature, $direction) = @_;
 
 	die 'invalid direction: must be either 1 or -1 (up or down)'
-		unless $direction && $direction =~ m/^-?1$/;
+		unless $direction && $direction =~ m/^[+-]?1$/;
 
 	my $value = ($direction * 5) . '%';
 	$value = "+$value" if $direction == 1;
