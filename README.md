@@ -4,8 +4,13 @@ together with WMs that do not provide DE-like features like brightness control
 (like dwm).
 
 ## Code and documentation
-Code on GitHub. Limited documentation. This module is mostly for self-use. Let
-me know if you are interested in using it yourself.
+Code on GitHub. Limited documentation as a man page. This module is mostly for
+self-use. Let me know if you are interested in using it yourself.
+
+## TODO
+
+- action on lid close (sleep / nothing)
+- extra monitors through xrandr
 
 ## Bugs and feature requests
 Please use the Github's issue tracker to file both bugs and feature requests.
