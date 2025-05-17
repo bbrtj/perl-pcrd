@@ -158,7 +158,7 @@ sub check_modules
 		'found' => "Zero files found by pattern '%s'",
 		'readable' => "Files found by pattern '%s' are not readable",
 		'writable' => "Files found by pattern '%s' are not writable",
-		'command' => "Command from '%s' does not run: %s",
+		'command' => "Command does not run: %s",
 		'dependency' => "Failure to resolve dependency on feature '%s'",
 		'result' => "Unexpected result of querying the device's resource '%s'",
 	};
