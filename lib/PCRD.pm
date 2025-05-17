@@ -219,7 +219,7 @@ sub handle_message
 
 		my $feature = $self->{modules}{$module}->feature($feature_name);
 		if (!$feature) {
-			$write->($err, "$module $module does not have feature $feature_name");
+			$write->($err, "module $module does not have feature $feature_name");
 			next;
 		}
 
