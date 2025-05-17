@@ -51,6 +51,7 @@ sub run_daemon
 		$0 = 'pcrd';
 		open STDOUT, '>', $logs;
 		open STDERR, '>&', STDOUT;
+		chdir '/';
 	}
 
 	require PCRD;
