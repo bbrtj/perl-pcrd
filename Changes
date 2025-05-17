@@ -1,6 +1,8 @@
 Revision history for PCRD
 
 {{$NEXT}}
+
+0.002 - 2025-05-17
 	- Fix calculation of cpu usage
 	- Add configurable time window of readings taken for battery life calculation
 	- Protect against system clock changing to the future causing the program to go into a loop
