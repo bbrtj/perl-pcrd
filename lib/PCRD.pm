@@ -7,6 +7,7 @@ use IO::Socket::UNIX;
 use IO::Async::Listener;
 use IO::Async::Loop;
 use Scalar::Util qw(looks_like_number);
+use Fcntl qw(LOCK_EX LOCK_NB);
 use English;
 
 use PCRD::Util;
@@ -87,6 +88,11 @@ sub _load_modules
 sub _setup_socket
 {
 	my ($self) = @_;
+
+	my $lockfile = $self->{socket}{file} . '.lock';
+	open my $lock_fh, '>>', $lockfile;
+	flock $lock_fh, LOCK_EX | LOCK_NB or die 'Could not obtain lock - server is running?';
+	$self->{socket}{lock} = $lock_fh;
 
 	unlink $self->{socket}{file}
 		if -e $self->{socket}{file};

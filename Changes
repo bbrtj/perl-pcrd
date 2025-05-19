@@ -2,6 +2,7 @@ Revision history for PCRD
 
 {{$NEXT}}
 	- Execute hook now gets passed the return value of the function
+	- PCRD server now creates a lockfile on the socket file
 
 0.002 - 2025-05-17
 	- Fix calculation of cpu usage
