@@ -38,7 +38,7 @@ $pcrd->add_test_timer(
 $pcrd->start(0.1);
 $pcrd->run_tests;
 
-is $hook_ran, ['r', undef], 'hook was executed ok';
+is $hook_ran, ['r', undef, 'CONST'], 'hook was executed ok';
 
 done_testing;
 

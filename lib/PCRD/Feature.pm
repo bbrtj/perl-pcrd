@@ -108,7 +108,7 @@ sub execute
 
 	my $method = "$prefixes->{$action}_$self->{name}";
 	my $result = $self->{module}->$method($self, $arg);
-	$self->{execute_hook}->($action, $arg)
+	$self->{execute_hook}->($action, $arg, $result)
 		if $self->{execute_hook};
 
 	return $result;
