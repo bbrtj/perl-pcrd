@@ -2,6 +2,7 @@ Revision history for PCRD
 
 {{$NEXT}}
 	- Project is now based on Mite
+	- allow multiple hooks
 
 0.003 - 2025-05-19
 	- Execute hook now gets passed the return value of the function

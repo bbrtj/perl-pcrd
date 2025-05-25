@@ -56,10 +56,10 @@ has 'vars' => (
 	init_arg => undef,
 );
 
-has 'execute_hook' => (
+has 'execute_hooks' => (
 	is => 'ro',
-	isa => 'CodeRef',
-	predicate => 'has_execute_hook',
+	isa => 'ArrayRef[CodeRef]',
+	default => sub { [] },
 );
 
 sub _build_config_obj
@@ -138,6 +138,14 @@ sub init
 	$self->vars->{_initialized} = !!1;
 }
 
+sub add_execute_hook
+{
+	my ($self, $hook) = @_;
+
+	push @{$self->execute_hooks}, $hook;
+	return;
+}
+
 # execute feature (done on socket input)
 sub execute
 {
@@ -153,8 +161,10 @@ sub execute
 
 	my $method = "$prefixes->{$action}_" . $self->name;
 	my $result = $self->owner->$method($self, $arg);
-	$self->execute_hook->($action, $arg, $result)
-		if $self->has_execute_hook;
+
+	foreach my $hook (@{$self->execute_hooks}) {
+		$hook->($action, $arg, $result);
+	}
 
 	return $result;
 }
