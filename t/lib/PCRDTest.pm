@@ -62,7 +62,7 @@ sub create_daemon
 		values => \%config,
 	);
 
-	$self->{pcrd} = PCRD->new(_config => $memory_config);
+	$self->{pcrd} = PCRD->new(config_obj => $memory_config);
 
 	# early register socket, so that it will be created for the client
 	$self->{pcrd}->listener;
@@ -76,7 +76,7 @@ sub _create_client
 	my ($self, $memory_config) = @_;
 
 	$self->{client} = PCRD::Client->new(
-		_config => $memory_config,
+		config_obj => $memory_config,
 		on_message => sub {
 			my ($ok, $data) = @_;
 			push @{$self->{msgs}{got}}, [$ok, $data];

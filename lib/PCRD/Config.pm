@@ -19,14 +19,6 @@ has '_values' => (
 	init_arg => 'values',
 );
 
-sub BUILD
-{
-	my ($self, $args) = @_;
-
-	$self->load_config
-		unless $args->{no_load};
-}
-
 sub dump_config { ... }
 sub load_config { ... }
 
@@ -40,8 +32,9 @@ sub explain_config
 		my $features = $module->features;
 		foreach my $feature (keys %$features) {
 			my $feat = $features->{$feature};
-			foreach my $config (keys %{$feat->{config_def}}) {
-				my $desc = $feat->{config_def}{$config}{desc};
+
+			foreach my $config (keys %{$feat->config_def}) {
+				my $desc = $feat->config_def->{$config}{desc};
 				$descs{join '.', $module->name, $feature, $config}
 					= $desc if $desc;
 			}

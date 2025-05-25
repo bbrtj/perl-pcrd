@@ -20,17 +20,20 @@ sub run_query
 
 	require PCRD::Client;
 	require IO::Async::Loop;
-	my $client = PCRD::Client->new;
 	my $loop = IO::Async::Loop->new;
-	$loop->add(
-		$client->setup(sub {
+	my $client = PCRD::Client->new(
+		on_message => sub {
 			my ($ok, $result) = @_;
 			$loop->stop;
 
 			die "failed to execute: $result\n"
 				unless $ok;
 			say $result;
-		})
+		},
+	);
+
+	$loop->add(
+		$client->client
 	);
 
 	$client->send($module, $feature, $value);
@@ -71,7 +74,7 @@ elsif ($action eq 'run') {
 }
 elsif ($action eq 'init') {
 	require PCRD;
-	PCRD->new(no_config => 1)->dump_config;
+	PCRD->new(load_config => !!0)->dump_config;
 	say 'initialized';
 }
 elsif ($action eq 'config') {

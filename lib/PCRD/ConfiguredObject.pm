@@ -14,27 +14,34 @@ has 'owner' => (
 	weak_ref => 1,
 );
 
-has 'no_config' => (
+has 'load_config' => (
 	is => 'ro',
 	isa => 'Bool',
-	default => !!0,
+	default => !!1,
 );
 
-has '_config' => (
+has 'config_obj' => (
 	is => 'ro',
 	isa => "InstanceOf['PCRD::Config']",
-	builder => '_build_config',
+	builder => '_build_config_obj',
 	lazy => 1,
 );
 
-sub _build_config
+sub _build_config_obj
 {
 	my ($self) = @_;
 
-	return $self->has_owner
-		? $self->owner->_config
-		: PCRD::Config::File->new(no_load => $self->no_config)
-		;
+	my $obj;
+	if ($self->has_owner) {
+		$obj = $self->owner->config_obj;
+	}
+	else {
+		$obj = PCRD::Config::File->new;
+		$obj->load_config
+			if $self->load_config;
+	}
+
+	return $obj;
 }
 
 1;

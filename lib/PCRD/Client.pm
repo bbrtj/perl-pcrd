@@ -20,7 +20,7 @@ has 'socket_config' => (
 	is => 'ro',
 	isa => 'HashRef',
 	default => sub {
-		my $hash = shift->_config->get_value('socket', {});
+		my $hash = shift->config_obj->get_value('socket', {});
 		$hash->{file} //= '/tmp/pcrd.sock';
 
 		return $hash;

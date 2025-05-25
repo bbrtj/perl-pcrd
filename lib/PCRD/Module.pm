@@ -33,10 +33,10 @@ has 'features' => (
 	init_arg => undef,
 );
 
-sub _build_config
+sub _build_config_obj
 {
 	my ($self) = @_;
-	my $config = $self->SUPER::_build_config;
+	my $config = $self->SUPER::_build_config_obj;
 	$config = $config->clone(prefix => [$self->name]);
 
 	return $config;
@@ -46,7 +46,7 @@ sub _load_config
 {
 	my ($self) = @_;
 	my %config = (
-		all_features => $self->_config->get_value('all_features', 1),
+		all_features => $self->config_obj->get_value('all_features', 1),
 	);
 
 	return \%config;

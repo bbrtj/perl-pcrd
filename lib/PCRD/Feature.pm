@@ -38,6 +38,7 @@ has 'config_def' => (
 	isa => 'HashRef',
 	default => sub { {} },
 	init_arg => 'config',
+	required => 1,
 );
 
 has 'config' => (
@@ -61,10 +62,10 @@ has 'execute_hook' => (
 	predicate => 'has_execute_hook',
 );
 
-sub _build_config
+sub _build_config_obj
 {
 	my ($self) = @_;
-	my $config = $self->SUPER::_build_config;
+	my $config = $self->SUPER::_build_config_obj;
 
 	$config = $config->clone(
 		prefix => [@{$config->prefix}, $self->name]
@@ -76,7 +77,7 @@ sub _build_config
 sub _load_config
 {
 	my ($self) = @_;
-	my $config = $self->_config->get_values;
+	my $config = $self->config_obj->get_values;
 
 	my $config_def = $self->config_def;
 	foreach my $key (keys %{$config_def}) {
@@ -178,7 +179,7 @@ sub dump_config
 
 	my %current;
 	foreach my $key (keys %{$self->config}) {
-		my $real_key = join '.', @{$self->_config->prefix}, $key;
+		my $real_key = join '.', @{$self->config_obj->prefix}, $key;
 		$current{$real_key} = $self->config->{$key} // '';
 	}
 

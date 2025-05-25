@@ -35,7 +35,7 @@ has 'probe_interval' => (
 	is => 'ro',
 	isa => 'PositiveNum',
 	default => sub {
-		shift->_config->get_value('probe_interval', 10);
+		shift->config_obj->get_value('probe_interval', 10);
 	},
 	lazy => 1,
 	init_arg => undef,
@@ -45,7 +45,7 @@ has 'socket_config' => (
 	is => 'ro',
 	isa => 'HashRef',
 	default => sub {
-		my $hash = shift->_config->get_value('socket', {});
+		my $hash = shift->config_obj->get_value('socket', {});
 		$hash->{file} //= '/tmp/pcrd.sock';
 		$hash->{user} //= $EUID;
 		$hash->{group} //= $EGID;
@@ -84,7 +84,7 @@ sub _build_modules
 {
 	my ($self) = @_;
 
-	my $config = $self->_config->get_values;
+	my $config = $self->config_obj->get_values;
 	my @module_list;
 	foreach my $key (keys %$config) {
 		next unless $key =~ m/^[A-Z]/;
@@ -187,13 +187,13 @@ sub _build_listener
 sub dump_config
 {
 	my ($self) = @_;
-	$self->{_config}->dump_config;
+	$self->config_obj->dump_config;
 }
 
 sub explain_config
 {
 	my ($self) = @_;
-	$self->{_config}->explain_config(values %{$self->{modules}});
+	$self->config_obj->explain_config(values %{$self->modules});
 }
 
 sub check_modules
