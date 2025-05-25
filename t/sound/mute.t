@@ -5,11 +5,11 @@ use lib 't/lib';
 use PCRDTest;
 
 ################################################################################
-# This tests whether the Sound module's volume works
+# This tests whether the Sound module's mute works
 ################################################################################
 
 # hardcoded in pactl mock
-my $volume = 0.5;
+my $muted = !!0;
 
 my $pcrd = PCRDTest->new;
 $pcrd->create_daemon(
@@ -17,7 +17,7 @@ $pcrd->create_daemon(
 		enabled => 1,
 		all_features => 0,
 		command => 't/mock/bin/pactl',
-		volume => {
+		mute => {
 			enabled => 1,
 		},
 	},
@@ -27,10 +27,15 @@ $pcrd->add_test_timer(
 	IO::Async::Timer::Periodic->new(
 		interval => 0.06,
 		on_tick => sub {
-			$pcrd->test_message(['Sound', 'volume'], $volume);
-			$pcrd->test_message(['Sound', 'volume', '1'], 1);
-			$pcrd->test_message(['Sound', 'volume'], $volume + 0.05);
-			$pcrd->test_message(['Sound', 'volume', '-1'], 1);
+			$pcrd->test_message(['Sound', 'mute'], $muted);
+			$pcrd->test_message(['Sound', 'mute', '1'], 1);
+			$pcrd->test_message(['Sound', 'mute'], !$muted);
+			$pcrd->test_message(['Sound', 'mute', 'toggle'], 1);
+			$pcrd->test_message(['Sound', 'mute'], $muted);
+			$pcrd->test_message(['Sound', 'mute', 'toggle'], 1);
+			$pcrd->test_message(['Sound', 'mute'], !$muted);
+			$pcrd->test_message(['Sound', 'mute', '0'], 1);
+			$pcrd->test_message(['Sound', 'mute'], $muted);
 		},
 	)->start
 );

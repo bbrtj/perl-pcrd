@@ -4,18 +4,20 @@ use strict;
 use autodie;
 
 my $state = 't/mock/bin/pactl-state';
-my $value;
+my $volume;
+my $mute;
 read_state();
 
 sub write_state
 {
 	open my $fh, '>', $state;
-	print {$fh} $value;
+	print {$fh} join "\n", $volume, $mute;
 }
 
 sub reset_state
 {
-	$value = 50;
+	$volume = 50;
+	$mute = 0;
 	write_state;
 }
 
@@ -26,8 +28,8 @@ sub read_state
 	}
 	else {
 		open my $fh, '<', $state;
-		$value = readline $fh;
-		chomp $value;
+		($volume, $mute) = readline $fh;
+		chomp $volume, $mute;
 	}
 }
 
@@ -36,12 +38,25 @@ if ($ARGV[0] eq 'info') {
 	print 'ready to mock';
 }
 elsif ($ARGV[0] eq 'get-sink-volume' && $ARGV[1] eq '@DEFAULT_SINK@') {
-	print "volume is $value%, I repeat, $value%";
+	print "volume is $volume%, I repeat, $volume%";
 }
-elsif ($ARGV[0] eq 'set-sink-volume' && $ARGV[1] eq '@DEFAULT_SINK@' && $ARGV[2]) {
+elsif ($ARGV[0] eq 'set-sink-volume' && $ARGV[1] eq '@DEFAULT_SINK@' && defined $ARGV[2]) {
 	my $arg = $ARGV[2];
 	$arg =~ tr/%//;
-	$value += $arg;
+	$volume += $arg;
+	write_state;
+}
+elsif ($ARGV[0] eq 'get-sink-mute' && $ARGV[1] eq '@DEFAULT_SINK@') {
+	print "yessir, mute status is " . ($mute ? 'yes' : 'no');
+}
+elsif ($ARGV[0] eq 'set-sink-mute' && $ARGV[1] eq '@DEFAULT_SINK@' && defined $ARGV[2]) {
+	my $arg = $ARGV[2];
+	if ($arg eq 'toggle') {
+		$mute = !$mute;
+	}
+	else {
+		$mute = !!$arg;
+	}
 	write_state;
 }
 else {

@@ -11,6 +11,10 @@ sub check_volume { ... }
 sub get_volume { ... }
 sub set_volume { ... }
 
+sub check_mute { ... }
+sub get_mute { ... }
+sub set_mute { ... }
+
 sub _build_features
 {
 	return {
@@ -23,6 +27,10 @@ sub _build_features
 					value => 5,
 				},
 			},
+		},
+		mute => {
+			desc => 'Get current mute status of the default audio sink',
+			mode => 'rw',
 		},
 	};
 }

@@ -7,13 +7,22 @@ use List::Util qw(sum);
 
 use parent 'PCRD::Module::Sound';
 
+sub _load_config
+{
+	my ($self) = @_;
+	my $config = $self->SUPER::_load_config;
+
+	$config->{command} = $self->config_obj->get_value('command', 'pactl');
+	return $config;
+}
+
 sub check_volume
 {
 	my ($self, $feature) = @_;
 
 	my @lines;
 	my $ex = PCRD::Util::try {
-		@lines = PCRD::Util::slurp_command($feature->config->{command}, 'info');
+		@lines = PCRD::Util::slurp_command($self->config->{command}, 'info');
 	};
 
 	return ['command', $ex || '(returned nothing)'] unless !$ex && @lines > 0;
@@ -24,7 +33,7 @@ sub get_volume
 {
 	my ($self, $feature) = @_;
 
-	my @lines = PCRD::Util::slurp_command($feature->config->{command}, 'get-sink-volume', '@DEFAULT_SINK@');
+	my @lines = PCRD::Util::slurp_command($self->config->{command}, 'get-sink-volume', '@DEFAULT_SINK@');
 	my @volumes;
 	foreach my $line (@lines) {
 		while ($line =~ m/(\d+)%/g) {
@@ -48,25 +57,44 @@ sub set_volume
 	my $value = ($direction * $feature->config->{step}) . '%';
 	$value = "+$value" if $direction == 1;
 
-	PCRD::Util::slurp_command($feature->config->{command}, 'set-sink-volume', '@DEFAULT_SINK@', $value);
+	PCRD::Util::slurp_command($self->config->{command}, 'set-sink-volume', '@DEFAULT_SINK@', $value);
 	return 1;
 }
 
-sub _build_features
+sub check_mute
 {
-	my ($self) = @_;
-	my $features = $self->SUPER::_build_features;
+	my ($self, $feature) = @_;
 
-	$features->{volume}{info} = 'Sound volume is controlled using pulseaudio program called pactl';
-	$features->{volume}{config} = {
-		%{$features->{volume}{config} // {}},
-		command => {
-			desc => 'pulseaudio command',
-			value => 'pactl',
-		},
+	my @lines;
+	my $ex = PCRD::Util::try {
+		@lines = PCRD::Util::slurp_command($self->config->{command}, 'info');
 	};
 
-	return $features;
+	return ['command', $ex || '(returned nothing)'] unless !$ex && @lines > 0;
+	return undef;
+}
+
+sub get_mute
+{
+	my ($self, $feature) = @_;
+
+	my @lines = PCRD::Util::slurp_command($self->config->{command}, 'get-sink-mute', '@DEFAULT_SINK@');
+	foreach my $line (@lines) {
+		return !!1
+			if $line =~ m/\byes\b/i;
+	}
+
+	return !!0;
+}
+
+sub set_mute
+{
+	my ($self, $feature, $value) = @_;
+	$value = $value ? 1 : 0
+		unless $value =~ m/toggle/i;
+
+	PCRD::Util::slurp_command($self->config->{command}, 'set-sink-mute', '@DEFAULT_SINK@', $value);
+	return 1;
 }
 
 1;
