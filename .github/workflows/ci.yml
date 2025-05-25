@@ -57,5 +57,6 @@ jobs:
         AUTHOR_TESTING: 1
         RELEASE_TESTING: 1
       run: |
+        mite compile
         prove -l -r t/
 

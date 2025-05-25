@@ -1,6 +1,10 @@
 requires 'IO::Async';
 
+on 'development' => sub {
+	requires 'Mite';
+};
+
 on 'test' => sub {
-	requires 'Test2::V0' => '0';
+	requires 'Test2::V0';
 };
 

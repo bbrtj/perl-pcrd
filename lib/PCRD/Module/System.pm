@@ -13,14 +13,14 @@ sub get_time
 {
 	my ($self, $feature) = @_;
 
-	return localtime->strftime($feature->{config}{format});
+	return localtime->strftime($feature->config->{format});
 }
 
 sub get_date
 {
 	my ($self, $feature) = @_;
 
-	return localtime->strftime($feature->{config}{format});
+	return localtime->strftime($feature->config->{format});
 }
 
 sub check_uptime { ... }

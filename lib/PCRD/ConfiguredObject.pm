@@ -5,22 +5,36 @@ use warnings;
 
 use PCRD::Config::File;
 
-sub new
+use PCRD::Mite;
+
+has 'owner' => (
+	is => 'ro',
+	isa => "InstanceOf['PCRD::ConfiguredObject']",
+	predicate => 'has_owner',
+	weak_ref => 1,
+);
+
+has 'no_config' => (
+	is => 'ro',
+	isa => 'Bool',
+	default => !!0,
+);
+
+has '_config' => (
+	is => 'ro',
+	isa => "InstanceOf['PCRD::Config']",
+	builder => '_build_config',
+	lazy => 1,
+);
+
+sub _build_config
 {
-	my ($class, %args) = @_;
+	my ($self) = @_;
 
-	my $self = bless \%args, $class;
-	$self->_load_config;
-	return $self;
-}
-
-sub _load_config
-{
-	my ($self, $parent) = @_;
-	$parent //= 'pcrd';
-
-	$self->{_config} //= $self->{$parent}{_config}
-		// PCRD::Config::File->new(no_load => $self->{no_config});
+	return $self->has_owner
+		? $self->owner->_config
+		: PCRD::Config::File->new(no_load => $self->no_config)
+		;
 }
 
 1;

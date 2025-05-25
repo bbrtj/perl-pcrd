@@ -11,15 +11,15 @@ sub prepare_uptime
 {
 	my ($self, $feature) = @_;
 
-	@{$feature->{vars}{files}} = glob $feature->{config}{pattern};
+	@{$feature->vars->{files}} = glob $feature->config->{pattern};
 }
 
 sub check_uptime
 {
 	my ($self, $feature) = @_;
 
-	return ['unique', 'pattern'] unless @{$feature->{vars}{files}} == 1;
-	return ['readable', 'pattern'] unless -r @{$feature->{vars}{files}}[0];
+	return ['unique', 'pattern'] unless @{$feature->vars->{files}} == 1;
+	return ['readable', 'pattern'] unless -r @{$feature->vars->{files}}[0];
 	return undef;
 }
 
@@ -27,14 +27,14 @@ sub get_uptime
 {
 	my ($self, $feature) = @_;
 
-	my $updata = PCRD::Util::slurp_1($feature->{vars}{files}[0]);
+	my $updata = PCRD::Util::slurp_1($feature->vars->{files}[0]);
 	my ($sec, $idle) = split /\s+/, $updata;
 
 	my $days = int($sec / 60 / 60 / 24);
 	my $hours = int($sec / 60 / 60) % 24;
 	my $minutes = int($sec / 60) % 60;
 
-	return sprintf $feature->{config}{format}, $days, $hours, $minutes;
+	return sprintf $feature->config->{format}, $days, $hours, $minutes;
 }
 
 sub _build_features

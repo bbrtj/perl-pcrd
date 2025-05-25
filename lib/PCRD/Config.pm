@@ -3,16 +3,28 @@ package PCRD::Config;
 use v5.14;
 use warnings;
 
-sub new
+use PCRD::Mite;
+
+has 'prefix' => (
+	is => 'ro',
+	isa => 'ArrayRef',
+	default => sub { [] },
+);
+
+has '_values' => (
+	is => 'ro',
+	isa => 'HashRef',
+	writer => '_set_values',
+	default => sub { {} },
+	init_arg => 'values',
+);
+
+sub BUILD
 {
-	my ($class, %args) = @_;
-	my $self = bless \%args, $class;
-	$self->{prefix} //= [];
-	$self->{values} //= {};
+	my ($self, $args) = @_;
 
 	$self->load_config
-		unless $self->{no_load};
-	return $self;
+		unless $args->{no_load};
 }
 
 sub dump_config { ... }
@@ -21,7 +33,7 @@ sub load_config { ... }
 sub explain_config
 {
 	my ($self, @modules) = @_;
-	my @base_prefix = @{$self->{prefix}};
+	my @base_prefix = @{$self->prefix};
 
 	my %descs;
 	foreach my $module (@modules) {
@@ -68,9 +80,14 @@ sub explain_config
 sub clone
 {
 	my ($self, %args) = @_;
-	%args = (%$self, %args);
+	%args = (
+		prefix => $self->prefix,
+		values => $self->_values,
+		%args,
+	);
 
-	return bless \%args, ref $self;
+	my $class = ref $self;
+	return $class->new(%args);
 }
 
 sub get_value
@@ -84,8 +101,8 @@ sub get_values
 {
 	my ($self) = @_;
 
-	my $config = $self->{values};
-	foreach my $part (@{$self->{prefix}}) {
+	my $config = $self->_values;
+	foreach my $part (@{$self->prefix}) {
 		$config = $config->{$part} //= {};
 	}
 

@@ -14,15 +14,15 @@ sub prepare_memory
 {
 	my ($self, $feature) = @_;
 
-	@{$feature->{vars}{files}} = glob $feature->{config}{pattern};
+	@{$feature->vars->{files}} = glob $feature->config->{pattern};
 }
 
 sub check_memory
 {
 	my ($self, $feature) = @_;
 
-	return ['unique', 'pattern'] unless @{$feature->{vars}{files}} == 1;
-	return ['readable', 'pattern'] unless -r $feature->{vars}{files}[0];
+	return ['unique', 'pattern'] unless @{$feature->vars->{files}} == 1;
+	return ['readable', 'pattern'] unless -r $feature->vars->{files}[0];
 	return undef;
 }
 
@@ -30,7 +30,7 @@ sub get_memory
 {
 	my ($self, $feature) = @_;
 
-	my @lines = PCRD::Util::slurp($feature->{vars}{files}[0]);
+	my @lines = PCRD::Util::slurp($feature->vars->{files}[0]);
 
 	my %data;
 	foreach my $line (@lines) {
@@ -54,15 +54,15 @@ sub prepare_swap
 {
 	my ($self, $feature) = @_;
 
-	@{$feature->{vars}{files}} = glob $feature->{config}{pattern};
+	@{$feature->vars->{files}} = glob $feature->config->{pattern};
 }
 
 sub check_swap
 {
 	my ($self, $feature) = @_;
 
-	return ['unique', 'pattern'] unless @{$feature->{vars}{files}} == 1;
-	return ['readable', 'pattern'] unless -r $feature->{vars}{files}[0];
+	return ['unique', 'pattern'] unless @{$feature->vars->{files}} == 1;
+	return ['readable', 'pattern'] unless -r $feature->vars->{files}[0];
 	return undef;
 }
 
@@ -70,7 +70,7 @@ sub get_swap
 {
 	my ($self, $feature) = @_;
 
-	my @lines = PCRD::Util::slurp($feature->{vars}{files}[0]);
+	my @lines = PCRD::Util::slurp($feature->vars->{files}[0]);
 
 	my %data;
 	foreach my $line (@lines) {
@@ -96,7 +96,7 @@ sub check_storage
 
 	my @lines;
 	my $ex = PCRD::Util::try {
-		@lines = PCRD::Util::slurp_command($feature->{config}{command});
+		@lines = PCRD::Util::slurp_command($feature->config->{command});
 	};
 
 	return ['command', $ex || '(returned nothing)'] unless !$ex && @lines > 0;
@@ -107,7 +107,7 @@ sub get_storage
 {
 	my ($self, $feature) = @_;
 
-	my @lines = PCRD::Util::slurp_command($feature->{config}{command});
+	my @lines = PCRD::Util::slurp_command($feature->config->{command});
 	my @cols;
 	foreach my $line (@lines) {
 		next unless $line =~ /^total\b/i;
@@ -127,18 +127,18 @@ sub prepare_cpu
 {
 	my ($self, $feature) = @_;
 
-	@{$feature->{vars}{files}} = glob $feature->{config}{pattern};
+	@{$feature->vars->{files}} = glob $feature->config->{pattern};
 }
 
 sub check_cpu
 {
 	my ($self, $feature) = @_;
 
-	return ['unique', 'pattern'] unless @{$feature->{vars}{files}} == 1;
-	return ['readable', 'pattern'] unless -r $feature->{vars}{files}[0];
+	return ['unique', 'pattern'] unless @{$feature->vars->{files}} == 1;
+	return ['readable', 'pattern'] unless -r $feature->vars->{files}[0];
 
-	my $line = PCRD::Util::slurp_1($feature->{vars}{files}[0]);
-	return ['content', $feature->{vars}{files}[0]]
+	my $line = PCRD::Util::slurp_1($feature->vars->{files}[0]);
+	return ['content', $feature->vars->{files}[0]]
 		unless $line =~ /^cpu\b/i && split(/\s+/, $line) >= 5;
 
 	return undef;
@@ -148,28 +148,28 @@ sub init_cpu
 {
 	my ($self, $feature) = @_;
 
-	$feature->{vars}{history} //= [];
+	$feature->vars->{history} //= [];
 	my $timer = IO::Async::Timer::Periodic->new(
-		interval => $self->{pcrd}{probe_interval},
+		interval => $self->owner->probe_interval,
 		reschedule => 'skip',
 		on_tick => sub {
-			my $line = PCRD::Util::slurp_1($feature->{vars}{files}[0]);
+			my $line = PCRD::Util::slurp_1($feature->vars->{files}[0]);
 			my @cols = split /\s+/, $line;
 
-			unshift @{$feature->{vars}{history}}, [$cols[1] + $cols[2] + $cols[3], $cols[4]];
-			splice @{$feature->{vars}{history}}, 3;
+			unshift @{$feature->vars->{history}}, [$cols[1] + $cols[2] + $cols[3], $cols[4]];
+			splice @{$feature->vars->{history}}, 3;
 		},
 	);
 
 	$timer->start;
-	$self->{pcrd}{loop}->add($timer);
+	$self->owner->loop->add($timer);
 }
 
 sub get_cpu
 {
 	my ($self, $feature) = @_;
 
-	my @hist = @{$feature->{vars}{history}};
+	my @hist = @{$feature->vars->{history}};
 	return -1
 		unless @hist > 1;
 
@@ -190,16 +190,16 @@ sub prepare_cpu_scaling
 {
 	my ($self, $feature) = @_;
 
-	@{$feature->{vars}{files}} = glob $feature->{config}{pattern};
+	@{$feature->vars->{files}} = glob $feature->config->{pattern};
 }
 
 sub check_cpu_scaling
 {
 	my ($self, $feature) = @_;
 
-	return ['unique', 'pattern'] unless @{$feature->{vars}{files}} == 1;
-	return ['readable', 'pattern'] unless -r $feature->{vars}{files}[0];
-	return ['writable', 'pattern'] unless -w $feature->{vars}{files}[0];
+	return ['unique', 'pattern'] unless @{$feature->vars->{files}} == 1;
+	return ['readable', 'pattern'] unless -r $feature->vars->{files}[0];
+	return ['writable', 'pattern'] unless -w $feature->vars->{files}[0];
 	return undef;
 }
 
@@ -207,14 +207,14 @@ sub get_cpu_scaling
 {
 	my ($self, $feature) = @_;
 
-	return PCRD::Util::slurp_1($feature->{vars}{files}[0]);
+	return PCRD::Util::slurp_1($feature->vars->{files}[0]);
 }
 
 sub set_cpu_scaling
 {
 	my ($self, $feature, $value) = @_;
 
-	PCRD::Util::spew($feature->{vars}{files}[0], $value);
+	PCRD::Util::spew($feature->vars->{files}[0], $value);
 	return 1;
 }
 
@@ -235,20 +235,20 @@ sub init_cpu_auto_scaling
 	my ($self, $feature) = @_;
 
 	my $scaling = $self->feature('cpu_scaling');
-	my $charging = $self->{pcrd}{modules}{Power}->feature('charging');
+	my $charging = $self->owner->module('Power')->feature('charging');
 
 	my $timer = IO::Async::Timer::Periodic->new(
-		interval => $self->{pcrd}{probe_interval},
+		interval => $self->owner->probe_interval,
 		reschedule => 'skip',
 		on_tick => sub {
 			my $current = $scaling->execute('r');
 			my $wanted;
 
 			if ($charging->execute('r')) {
-				$wanted = $feature->{config}{ac};
+				$wanted = $feature->config->{ac};
 			}
 			else {
-				$wanted = $feature->{config}{battery};
+				$wanted = $feature->config->{battery};
 			}
 
 			$scaling->execute('w', $wanted)
@@ -257,7 +257,7 @@ sub init_cpu_auto_scaling
 	);
 
 	$timer->start;
-	$self->{pcrd}{loop}->add($timer);
+	$self->owner->loop->add($timer);
 }
 
 sub _build_features

@@ -2,31 +2,54 @@ package PCRD::Module;
 
 use v5.14;
 use warnings;
-use Scalar::Util qw(weaken);
+
+use English;
 
 use PCRD::Feature;
 
-use parent 'PCRD::ConfiguredObject';
+use PCRD::Mite;
+
+extends 'PCRD::ConfiguredObject';
 
 use constant name => undef;
 
-sub new
+has '+owner' => (
+	required => 1,
+);
+
+has 'config' => (
+	is => 'ro',
+	isa => 'HashRef',
+	builder => '_load_config',
+	lazy => 1,
+	init_arg => undef,
+);
+
+has 'features' => (
+	is => 'ro',
+	isa => 'HashRef',
+	builder => '_load_features',
+	lazy => 1,
+	init_arg => undef,
+);
+
+sub _build_config
 {
-	my $self = shift->SUPER::new(@_);
+	my ($self) = @_;
+	my $config = $self->SUPER::_build_config;
+	$config = $config->clone(prefix => [$self->name]);
 
-	$self->{pcrd} // die 'pcrd is required';
-	weaken $self->{pcrd};
-
-	return $self;
+	return $config;
 }
 
 sub _load_config
 {
 	my ($self) = @_;
-	$self->SUPER::_load_config;
+	my %config = (
+		all_features => $self->_config->get_value('all_features', 1),
+	);
 
-	$self->{_config} = $self->{_config}->clone(prefix => [$self->name]);
-	$self->{config}{all_features} = $self->{_config}->get_value('all_features', 1);
+	return \%config;
 }
 
 sub init
@@ -38,23 +61,25 @@ sub init
 	}
 }
 
-sub features
+sub _load_features
 {
 	my ($self) = @_;
 
-	return $self->{features}
-		if defined $self->{features};
-
+	my %loaded;
 	my $features = $self->_build_features;
 	foreach my $key (keys %$features) {
-		my $feat = PCRD::Feature->new($self, $key, $features->{$key});
+		my $feat = PCRD::Feature->new(
+			%{$features->{$key}},
+			owner => $self,
+			name => $key,
+		);
 		next unless $feat->enabled;
 
 		$feat->prepare;
-		$self->{features}{$key} = $feat;
+		$loaded{$key} = $feat;
 	}
 
-	return $self->{features} // {};
+	return \%loaded;
 }
 
 sub _build_features
@@ -67,7 +92,7 @@ sub feature
 {
 	my ($self, $name) = @_;
 
-	return $self->features->{$name};
+	return $self->features->{$name} // die "No such feature: $name";
 }
 
 sub check_dependency
@@ -75,9 +100,10 @@ sub check_dependency
 	my ($self, $name) = @_;
 	my ($module, $feature) = split /\./, $name;
 
-	my $ok = $self->{pcrd}{modules}{$module}
-		&& $self->{pcrd}{modules}{$module}->feature($feature)
-		&& !defined $self->{pcrd}{modules}{$module}->feature($feature)->check;
+	my $ok = !!0;
+	my $ex = PCRD::Util::try {
+		$ok = !defined $self->owner->module($module)->feature($feature)->check;
+	};
 
 	return $ok ? undef : ['dependency', $name];
 }
@@ -111,11 +137,7 @@ sub load_plugin
 sub get_implementation
 {
 	my ($class, $name, $error_ref) = @_;
-	state $kernel = do {
-		my ($from_cmd) = PCRD::Util::slurp_command('uname', '-s');
-		chomp $from_cmd;
-		$from_cmd;
-	};
+	state $kernel = ucfirst $OSNAME;
 
 	$$error_ref = ''
 		if $error_ref;

@@ -13,7 +13,7 @@ sub check_volume
 
 	my @lines;
 	my $ex = PCRD::Util::try {
-		@lines = PCRD::Util::slurp_command($feature->{config}{command}, 'info');
+		@lines = PCRD::Util::slurp_command($feature->config->{command}, 'info');
 	};
 
 	return ['command', $ex || '(returned nothing)'] unless !$ex && @lines > 0;
@@ -24,7 +24,7 @@ sub get_volume
 {
 	my ($self, $feature) = @_;
 
-	my @lines = PCRD::Util::slurp_command($feature->{config}{command}, 'get-sink-volume', '@DEFAULT_SINK@');
+	my @lines = PCRD::Util::slurp_command($feature->config->{command}, 'get-sink-volume', '@DEFAULT_SINK@');
 	my @volumes;
 	foreach my $line (@lines) {
 		while ($line =~ m/(\d+)%/g) {
@@ -45,10 +45,10 @@ sub set_volume
 	die 'invalid direction: must be either 1 or -1 (up or down)'
 		unless $direction && $direction =~ m/^[+-]?1$/;
 
-	my $value = ($direction * $feature->{config}{step}) . '%';
+	my $value = ($direction * $feature->config->{step}) . '%';
 	$value = "+$value" if $direction == 1;
 
-	PCRD::Util::slurp_command($feature->{config}{command}, 'set-sink-volume', '@DEFAULT_SINK@', $value);
+	PCRD::Util::slurp_command($feature->config->{command}, 'set-sink-volume', '@DEFAULT_SINK@', $value);
 	return 1;
 }
 

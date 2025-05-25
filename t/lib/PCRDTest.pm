@@ -65,7 +65,7 @@ sub create_daemon
 	$self->{pcrd} = PCRD->new(_config => $memory_config);
 
 	# early register socket, so that it will be created for the client
-	$self->{pcrd}->_register_listener;
+	$self->{pcrd}->listener;
 	$self->_create_client($memory_config);
 
 	return $self;
@@ -75,18 +75,19 @@ sub _create_client
 {
 	my ($self, $memory_config) = @_;
 
-	$self->{client} = PCRD::Client->new(_config => $memory_config);
+	$self->{client} = PCRD::Client->new(
+		_config => $memory_config,
+		on_message => sub {
+			my ($ok, $data) = @_;
+			push @{$self->{msgs}{got}}, [$ok, $data];
+		},
+	);
 
 	$self->{msgs}{got} = [];
 	$self->{msgs}{expected} = [];
 
 	$self->loop->add(
-		$self->{client}->setup(
-			sub {
-				my ($ok, $data) = @_;
-				push @{$self->{msgs}{got}}, [$ok, $data];
-			}
-		)
+		$self->{client}->client
 	);
 }
 
@@ -185,7 +186,7 @@ sub loop
 {
 	my ($self) = @_;
 
-	$self->{pcrd}{loop};
+	$self->{pcrd}->loop;
 }
 
 1;

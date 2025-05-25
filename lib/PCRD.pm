@@ -13,7 +13,9 @@ use English;
 use PCRD::Util;
 use PCRD::Module;
 
-use parent 'PCRD::ConfiguredObject';
+use PCRD::Mite;
+
+extends 'PCRD::ConfiguredObject';
 
 # socket constants (vars for easier interpolation)
 my $ps = "\t";    # protocol separator
@@ -21,33 +23,68 @@ my $ok = 'ok';    # success
 my $err = 'err';    # error
 my $eot = "\n";    # end of transmission
 
-sub new
-{
-	my $self = shift->SUPER::new(@_);
+has 'loop' => (
+	is => 'ro',
+	default => sub {
+		IO::Async::Loop->new;
+	},
+	init_arg => undef,
+);
 
-	$self->{loop} = IO::Async::Loop->new;
-	$self->_load_modules;
-	return $self;
-}
+has 'probe_interval' => (
+	is => 'ro',
+	isa => 'PositiveNum',
+	default => sub {
+		shift->_config->get_value('probe_interval', 10);
+	},
+	lazy => 1,
+	init_arg => undef,
+);
 
-sub _load_config
+has 'socket_config' => (
+	is => 'ro',
+	isa => 'HashRef',
+	default => sub {
+		my $hash = shift->_config->get_value('socket', {});
+		$hash->{file} //= '/tmp/pcrd.sock';
+		$hash->{user} //= $EUID;
+		$hash->{group} //= $EGID;
+		$hash->{perm} //= '0660';
+
+		return $hash;
+	},
+	lazy => 1,
+	init_arg => undef,
+);
+
+has 'modules' => (
+	is => 'ro',
+	isa => 'HashRef',
+	builder => '_build_modules',
+	lazy => 1,
+	init_arg => undef,
+);
+
+has 'socket' => (
+	is => 'ro',
+	builder => '_build_socket',
+	lazy => 1,
+	init_arg => undef,
+);
+
+has 'listener' => (
+	is => 'ro',
+	isa => "InstanceOf['IO::Async::Listener']",
+	builder => '_build_listener',
+	lazy => 1,
+	init_arg => undef,
+);
+
+sub _build_modules
 {
 	my ($self) = @_;
-	$self->SUPER::_load_config;
 
-	$self->{probe_interval} = $self->{_config}->get_value('probe_interval', 10);
-	$self->{socket} = $self->{_config}->get_value('socket', {});
-	$self->{socket}{file} //= '/tmp/pcrd.sock';
-	$self->{socket}{user} //= $EUID;
-	$self->{socket}{group} //= $EGID;
-	$self->{socket}{perm} //= '0660';
-}
-
-sub _load_modules
-{
-	my ($self) = @_;
-
-	my $config = $self->{_config}->get_values;
+	my $config = $self->_config->get_values;
 	my @module_list;
 	foreach my $key (keys %$config) {
 		next unless $key =~ m/^[A-Z]/;
@@ -80,49 +117,49 @@ sub _load_modules
 		die "Some pcrd modules could not be loaded:\n@loading_errors\n";
 	}
 
-	$self->{modules} = {
-		map { $_->name => $_->new(pcrd => $self) } @modules
+	return {
+		map { $_->name => $_->new(owner => $self) } @modules
 	};
 }
 
-sub _setup_socket
+sub _build_socket
 {
 	my ($self) = @_;
 
-	my $lockfile = $self->{socket}{file} . '.lock';
+	my $socket_conf = $self->socket_config;
+	my $lockfile = $socket_conf->{file} . '.lock';
 	open my $lock_fh, '>>', $lockfile;
 	flock $lock_fh, LOCK_EX | LOCK_NB or die 'Could not obtain lock - server is running?';
-	$self->{socket}{lock} = $lock_fh;
+	$socket_conf->{lock} = $lock_fh;
 
-	unlink $self->{socket}{file}
-		if -e $self->{socket}{file};
+	unlink $socket_conf->{file}
+		if -e $socket_conf->{file};
 
 	my $socket = IO::Socket::UNIX->new(
 		Type => SOCK_STREAM,
-		Local => $self->{socket}{file},
+		Local => $socket_conf->{file},
 		Listen => 1,
 	) or die "Cannot create server socket - $IO::Socket::errstr\n";
 
-	my $uid = $self->{socket}{user};
+	my $uid = $socket_conf->{user};
 	$uid = getpwnam($uid)
 		unless looks_like_number($uid);
 
-	my ($gid) = split / /, $self->{socket}{group};
+	my ($gid) = split / /, $socket_conf->{group};
 	$gid = getgrnam($gid)
 		unless looks_like_number($gid);
 
-	my $perm = oct($self->{socket}{perm});
+	my $perm = oct($socket_conf->{perm});
 
-	chown $uid, $gid, $self->{socket}{file};
-	chmod $perm, $self->{socket}{file};
+	chown $uid, $gid, $socket_conf->{file};
+	chmod $perm, $socket_conf->{file};
 
 	return $socket;
 }
 
-sub _register_listener
+sub _build_listener
 {
 	my ($self) = @_;
-	return if $self->{listener};
 
 	my $listener = IO::Async::Listener->new(
 		on_stream => sub {
@@ -141,10 +178,10 @@ sub _register_listener
 
 	$self->{loop}->add($listener);
 	$listener->listen(
-		handle => $self->_setup_socket,
+		handle => $self->socket,
 	);
 
-	$self->{listener} = $listener;
+	return $listener;
 }
 
 sub dump_config
@@ -162,7 +199,7 @@ sub explain_config
 sub check_modules
 {
 	my ($self) = @_;
-	my $modules = $self->{modules};
+	my $modules = $self->modules;
 
 	# TODO: translations?
 	state $error_text = {
@@ -207,7 +244,7 @@ sub module
 {
 	my ($self, $name) = @_;
 
-	return $self->{modules}{$name} // die "No such module: $name";
+	return $self->modules->{$name} // die "No such module: $name";
 }
 
 sub handle_message
@@ -224,12 +261,12 @@ sub handle_message
 		say "> $1";
 		my ($module, $feature_name, $action, $value) = split /$ps/, $1, 4;
 
-		if (!$self->{modules}{$module}) {
+		if (!$self->modules->{$module}) {
 			$write->($err, "no module '$module'");
 			next;
 		}
 
-		my $feature = $self->{modules}{$module}->feature($feature_name);
+		my $feature = $self->modules->{$module}->features->{$feature_name};
 		if (!$feature) {
 			$write->($err, "module '$module' does not have feature '$feature_name'");
 			next;
@@ -263,22 +300,22 @@ sub start
 		unless $self->check_modules;
 
 	die 'no modules specified, nothing to do'
-		unless keys %{$self->{modules}};
+		unless keys %{$self->modules};
 
-	foreach my $module (keys %{$self->{modules}}) {
-		$self->{modules}{$module}->init;
+	foreach my $module (keys %{$self->modules}) {
+		$self->modules->{$module}->init;
 	}
 
 	say 'starting the daemon...';
-	$self->_register_listener;
-	$self->{loop}->run;
+	$self->listener;
+	$self->loop->run;
 }
 
 sub stop
 {
 	my ($self) = @_;
 
-	$self->{loop}->stop;
+	$self->loop->stop;
 }
 
 1;

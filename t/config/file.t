@@ -6,7 +6,7 @@ use PCRD::Config::File;
 ################################################################################
 
 my $conf1 = PCRD::Config::File->new(filename => 't/config/conf1');
-is $conf1->{values}, {
+is $conf1->get_values, {
 	a => {
 		b => {
 			c => 'd',
@@ -17,7 +17,7 @@ is $conf1->{values}, {
 	'conf1 ok';
 
 my $conf2 = PCRD::Config::File->new(filename => 't/config/conf2');
-is $conf2->{values}, {
+is $conf2->get_values, {
 	a => 15,
 	b => 16,
 	ab => {

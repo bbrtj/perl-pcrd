@@ -3,15 +3,25 @@ package PCRD::Config::File;
 use v5.14;
 use warnings;
 
+use PCRD::Mite;
 use PCRD::Util;
 
-use parent 'PCRD::Config';
+extends 'PCRD::Config';
+
+has 'filename' => (
+	is => 'ro',
+	isa => 'Str',
+	default => sub {
+		my $self = shift;
+		return $ENV{PCRD_CONFIG} // "$ENV{HOME}/.pcrd";
+	},
+);
 
 sub dump_config
 {
 	my ($self) = @_;
 
-	my $filename = $self->{filename} // $ENV{PCRD_CONFIG} // "$ENV{HOME}/.pcrd";
+	my $filename = $self->filename;
 	die "config file $filename already exists!\n"
 		if -e $filename;
 
@@ -24,8 +34,7 @@ sub load_config
 {
 	my ($self) = @_;
 
-	my $filename = $self->{filename} // $ENV{PCRD_CONFIG} // "$ENV{HOME}/.pcrd";
-	my @lines = PCRD::Util::slurp($filename);
+	my @lines = PCRD::Util::slurp($self->filename);
 	my %conf;
 
 	chomp @lines;
@@ -54,7 +63,7 @@ sub load_config
 		$current_conf->{$key} = $value;
 	}
 
-	$self->{values} = \%conf;
+	$self->_set_values(\%conf);
 }
 
 1;

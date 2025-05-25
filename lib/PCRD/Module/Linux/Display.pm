@@ -11,20 +11,20 @@ sub prepare_brightness
 {
 	my ($self, $feature) = @_;
 
-	@{$feature->{vars}{now_files}} = glob $feature->{config}{now_pattern};
-	@{$feature->{vars}{max_files}} = glob $feature->{config}{max_pattern};
+	@{$feature->vars->{now_files}} = glob $feature->config->{now_pattern};
+	@{$feature->vars->{max_files}} = glob $feature->config->{max_pattern};
 }
 
 sub check_brightness
 {
 	my ($self, $feature) = @_;
 
-	return ['unique', 'now_pattern'] unless @{$feature->{vars}{now_files}} == 1;
-	return ['readable', 'now_pattern'] unless -r $feature->{vars}{now_files}[0];
-	return ['writable', 'now_pattern'] unless -w $feature->{vars}{now_files}[0];
+	return ['unique', 'now_pattern'] unless @{$feature->vars->{now_files}} == 1;
+	return ['readable', 'now_pattern'] unless -r $feature->vars->{now_files}[0];
+	return ['writable', 'now_pattern'] unless -w $feature->vars->{now_files}[0];
 
-	return ['unique', 'now_pattern'] unless @{$feature->{vars}{max_files}} == 1;
-	return ['readable', 'now_pattern'] unless -r $feature->{vars}{max_files}[0];
+	return ['unique', 'now_pattern'] unless @{$feature->vars->{max_files}} == 1;
+	return ['readable', 'now_pattern'] unless -r $feature->vars->{max_files}[0];
 
 	return undef;
 }
@@ -33,8 +33,8 @@ sub get_brightness
 {
 	my ($self, $feature) = @_;
 
-	my $curr = PCRD::Util::slurp_1($feature->{vars}{now_files}[0]);
-	my $max = PCRD::Util::slurp_1($feature->{vars}{max_files}[0]);
+	my $curr = PCRD::Util::slurp_1($feature->vars->{now_files}[0]);
+	my $max = PCRD::Util::slurp_1($feature->vars->{max_files}[0]);
 	return $curr > 0 ? int(log($curr) / log($max) * 100) / 100 : 0;
 }
 
@@ -45,8 +45,8 @@ sub set_brightness
 	die 'invalid direction: must be either 1 or -1 (up or down)'
 		unless $direction && $direction =~ m/^[+-]?1$/;
 
-	my $curr = PCRD::Util::slurp_1($feature->{vars}{now_files}[0]);
-	my $max = PCRD::Util::slurp_1($feature->{vars}{max_files}[0]);
+	my $curr = PCRD::Util::slurp_1($feature->vars->{now_files}[0]);
+	my $max = PCRD::Util::slurp_1($feature->vars->{max_files}[0]);
 	my $new_curr;
 
 	if ($curr == 0) {
@@ -55,11 +55,11 @@ sub set_brightness
 		$new_curr = $direction > 0 ? 1 : 0;
 	}
 	else {
-		my $new_log_scale_curr = log($curr) + $direction * ($feature->{config}{step} / 100) * log($max);
+		my $new_log_scale_curr = log($curr) + $direction * ($feature->config->{step} / 100) * log($max);
 		$new_curr = max 0, min $max, int(exp($new_log_scale_curr));
 	}
 
-	PCRD::Util::spew($feature->{vars}{now_files}[0], $new_curr);
+	PCRD::Util::spew($feature->vars->{now_files}[0], $new_curr);
 	return 1;
 }
 
