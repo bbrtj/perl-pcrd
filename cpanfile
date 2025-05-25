@@ -1,6 +1,6 @@
 requires 'IO::Async';
 
-on 'development' => sub {
+on 'develop' => sub {
 	requires 'Mite';
 };
 

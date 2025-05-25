@@ -37,7 +37,7 @@ jobs:
         tidyall -a --check-only
     - name: Install dependencies
       run: |
-        cpanm --installdeps --notest .
+        cpanm --installdeps --notest --with-develop .
     - name: Show Errors on Windows
       if:  ${{ failure() && startsWith( matrix.runner, 'windows-') }}
       run: |
