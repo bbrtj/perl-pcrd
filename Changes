@@ -4,6 +4,7 @@ Revision history for PCRD
 	- Project is now based on Mite
 	- Allow multiple hooks
 	- Add mute feature to Sound module
+	- Add suspend feature to Power module
 
 0.003 - 2025-05-19
 	- Execute hook now gets passed the return value of the function

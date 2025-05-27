@@ -52,6 +52,17 @@ sub update
 	$self->_update($self->{files}{$name}{fh}, $contents);
 }
 
+sub tmpfile_contents
+{
+	my ($self, $name) = @_;
+	my $fh = $self->{files}{$name}{fh};
+
+	my @lines = readline $fh;
+	seek $fh, 0, 0;
+
+	return join '', @lines;
+}
+
 sub create_daemon
 {
 	my ($self, %config) = @_;

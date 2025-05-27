@@ -10,7 +10,6 @@ in using it yourself.
 
 ## TODO
 
-- action on lid close (sleep / nothing)
 - extra monitors through xrandr
 
 ## Bugs and feature requests
