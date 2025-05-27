@@ -81,6 +81,9 @@ elsif ($action eq 'config') {
 	require PCRD;
 	say PCRD->new->explain_config;
 }
+else {
+	die "Unknown action $action\n";
+}
 
 __END__
 
