@@ -7,6 +7,8 @@ use List::Util qw(max min);
 
 use parent 'PCRD::Module::Display';
 
+## BRIGHTNESS
+
 sub prepare_brightness
 {
 	my ($self, $feature) = @_;

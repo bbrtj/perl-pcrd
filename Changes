@@ -5,6 +5,7 @@ Revision history for PCRD
 	- Allow multiple hooks
 	- Add mute feature to Sound module
 	- Add suspend feature to Power module
+	- Add new Device module
 
 0.003 - 2025-05-19
 	- Execute hook now gets passed the return value of the function

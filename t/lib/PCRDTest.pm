@@ -28,6 +28,7 @@ sub _update
 	my ($self, $fh, $value) = @_;
 
 	local $| = 1;
+	truncate $fh, 0;
 	print {$fh} $value;
 	seek $fh, 0, 0;
 }

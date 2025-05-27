@@ -202,7 +202,7 @@ sub check_suspend
 
 sub set_suspend
 {
-	my ($self, $feature) = @_;
+	my ($self, $feature, $value) = @_;
 
 	PCRD::Util::spew($feature->vars->{files}[0], $feature->config->{state});
 	return 1;

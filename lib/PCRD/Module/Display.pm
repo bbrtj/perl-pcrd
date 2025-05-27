@@ -11,6 +11,9 @@ sub check_brightness { ... }
 sub get_brightness { ... }
 sub set_brightness { ... }
 
+sub check_lid { ... }
+sub get_lid { ... }
+
 sub _build_features
 {
 	return {
@@ -23,6 +26,10 @@ sub _build_features
 					value => 10,
 				},
 			},
+		},
+		lid => {
+			desc => 'Get current state of the laptop lid',
+			mode => 'r',
 		},
 	};
 }
