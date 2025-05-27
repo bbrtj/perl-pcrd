@@ -80,4 +80,5 @@ Performance.enabled=1
 Display.enabled=1
 Sound.enabled=1
 System.enabled=1
+Device.enabled=1
 
