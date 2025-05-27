@@ -229,7 +229,7 @@ sub check_modules
 			warn sprintf($error_text->{$this_error->[0]}, $this_error->[1]) . "\n";
 			warn "'$item' will not work properly with current configuration.\n";
 			warn $checklist{$item}->error_string . "\n";
-			warn "Current config:\n" . $checklist{$item}->explain_config . "\n";
+			warn "Current config:\n" . $checklist{$item}->dump_config . "\n";
 			warn "\n";
 		}
 		else {
