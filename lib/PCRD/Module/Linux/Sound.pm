@@ -3,6 +3,7 @@ package PCRD::Module::Linux::Sound;
 use v5.14;
 use warnings;
 
+use Future;
 use List::Util qw(sum);
 
 use parent 'PCRD::Module::Sound';
@@ -33,18 +34,20 @@ sub get_volume
 {
 	my ($self, $feature) = @_;
 
-	my @lines = PCRD::Util::slurp_command($self->config->{command}, 'get-sink-volume', '@DEFAULT_SINK@');
-	my @volumes;
-	foreach my $line (@lines) {
-		while ($line =~ m/(\d+)%/g) {
-			push @volumes, $1;
-		}
-	}
+	return $self->owner->broadcast($self->config->{command}, 'get-sink-volume', '@DEFAULT_SINK@')
+		->then(sub {
+			my @volumes;
+			foreach my $line (@_) {
+				while ($line =~ m/(\d+)%/g) {
+					push @volumes, $1;
+				}
+			}
 
-	return -1
-		unless @volumes > 0;
+			return -1
+				unless @volumes > 0;
 
-	return sum(@volumes) / @volumes / 100;
+			return sum(@volumes) / @volumes / 100;
+		});
 }
 
 sub set_volume
@@ -57,8 +60,8 @@ sub set_volume
 	my $value = ($direction * $feature->config->{step}) . '%';
 	$value = "+$value" if $direction == 1;
 
-	PCRD::Util::slurp_command($self->config->{command}, 'set-sink-volume', '@DEFAULT_SINK@', $value);
-	return 1;
+	return $self->owner->broadcast($self->config->{command}, 'set-sink-volume', '@DEFAULT_SINK@', $value)
+		->then(sub { 1 });
 }
 
 sub check_mute
@@ -77,14 +80,15 @@ sub check_mute
 sub get_mute
 {
 	my ($self, $feature) = @_;
+	$self->owner->broadcast($self->config->{command}, 'get-sink-mute', '@DEFAULT_SINK@')
+		->then(sub {
+			foreach my $line (@_) {
+				return !!1
+					if $line =~ m/\byes\b/i;
+			}
 
-	my @lines = PCRD::Util::slurp_command($self->config->{command}, 'get-sink-mute', '@DEFAULT_SINK@');
-	foreach my $line (@lines) {
-		return !!1
-			if $line =~ m/\byes\b/i;
-	}
-
-	return !!0;
+			return !!0;
+		});
 }
 
 sub set_mute
@@ -93,8 +97,8 @@ sub set_mute
 	$value = $value ? 1 : 0
 		unless $value =~ m/toggle/i;
 
-	PCRD::Util::slurp_command($self->config->{command}, 'set-sink-mute', '@DEFAULT_SINK@', $value);
-	return 1;
+	return $self->owner->broadcast($self->config->{command}, 'set-sink-mute', '@DEFAULT_SINK@', $value)
+		->then(sub { 1 });
 }
 
 1;

@@ -3,20 +3,22 @@ use IO::Async::Timer::Periodic;
 
 use lib 't/lib';
 use PCRDTest;
+use PCRDFiles;
 
 ################################################################################
 # This tests whether the Power module's suspend works
 ################################################################################
 
-my $pcrd = PCRDTest->new;
-$pcrd->create_daemon(
-	Power => {
-		enabled => 1,
-		all_features => 0,
-		suspend => {
+my $pcrd = PCRDTest->new(
+	config => {
+		Power => {
 			enabled => 1,
-			pattern => $pcrd->prepare_tmpfile('suspend', 'freeze mem disk'),
-			state => 'disk',
+			all_features => 0,
+			suspend => {
+				enabled => 1,
+				pattern => PCRDFiles->prepare('suspend', 'freeze mem disk'),
+				state => 'disk',
+			},
 		},
 	},
 );
@@ -33,7 +35,7 @@ $pcrd->add_test_timer(
 $pcrd->start(0.1);
 $pcrd->run_tests;
 
-is $pcrd->tmpfile_contents('suspend'), 'disk', 'suspend ok';
+is(PCRDFiles->contents('suspend'), 'disk', 'suspend ok');
 
 done_testing;
 

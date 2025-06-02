@@ -11,14 +11,15 @@ use PCRDTest;
 # hardcoded in pactl mock
 my $muted = !!0;
 
-my $pcrd = PCRDTest->new;
-$pcrd->create_daemon(
-	Sound => {
-		enabled => 1,
-		all_features => 0,
-		command => 't/mock/bin/pactl',
-		mute => {
+my $pcrd = PCRDTest->new(
+	config => {
+		Sound => {
 			enabled => 1,
+			all_features => 0,
+			command => 't/mock/bin/pactl',
+			mute => {
+				enabled => 1,
+			},
 		},
 	},
 );

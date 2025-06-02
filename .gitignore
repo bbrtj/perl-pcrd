@@ -4,5 +4,5 @@
 *.tar.gz
 
 lib/PCRD/Mite.pm
-lib/**/*.mite.pm
+**/*.mite.pm
 

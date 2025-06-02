@@ -11,14 +11,15 @@ use PCRDTest;
 my $scaling = 1;
 sub get_scaling { qw(performance powersave) [$scaling % 2] }
 
-my $pcrd = PCRDTest->new;
-$pcrd->create_daemon(
-	Performance => {
-		enabled => 1,
-		all_features => 0,
-		cpu_scaling => {
+my $pcrd = PCRDTest->new(
+	config => {
+		Performance => {
 			enabled => 1,
-			pattern => $pcrd->prepare_tmpfile('scaling', get_scaling),
+			all_features => 0,
+			cpu_scaling => {
+				enabled => 1,
+				pattern => PCRDFiles->prepare('scaling', get_scaling),
+			},
 		},
 	},
 );

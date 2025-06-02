@@ -7,13 +7,6 @@ use PCRD::Config::File;
 
 use PCRD::Mite;
 
-has 'owner' => (
-	is => 'ro',
-	isa => "InstanceOf['PCRD::ConfiguredObject']",
-	predicate => 'has_owner',
-	weak_ref => 1,
-);
-
 has 'load_config' => (
 	is => 'ro',
 	isa => 'Bool',
@@ -26,6 +19,8 @@ has 'config_obj' => (
 	builder => '_build_config_obj',
 	lazy => 1,
 );
+
+with qw(PCRD::Role::HasOwner);
 
 sub _build_config_obj
 {

@@ -8,18 +8,19 @@ use PCRDTest;
 # This tests whether the System module's date and time work
 ################################################################################
 
-my $pcrd = PCRDTest->new;
-$pcrd->create_daemon(
-	System => {
-		enabled => 1,
-		all_features => 0,
-		date => {
+my $pcrd = PCRDTest->new(
+	config => {
+		System => {
 			enabled => 1,
-			format => 'd%s',
-		},
-		time => {
-			enabled => 1,
-			format => 't%s',
+			all_features => 0,
+			date => {
+				enabled => 1,
+				format => 'd%s',
+			},
+			time => {
+				enabled => 1,
+				format => 't%s',
+			},
 		},
 	},
 );

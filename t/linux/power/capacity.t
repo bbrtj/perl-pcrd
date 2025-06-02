@@ -3,6 +3,7 @@ use IO::Async::Timer::Periodic;
 
 use lib 't/lib';
 use PCRDTest;
+use PCRDFiles;
 
 ################################################################################
 # This tests whether the Power module's capacity works
@@ -10,14 +11,15 @@ use PCRDTest;
 
 my $capacity = 60;
 
-my $pcrd = PCRDTest->new;
-$pcrd->create_daemon(
-	Power => {
-		enabled => 1,
-		all_features => 0,
-		capacity => {
+my $pcrd = PCRDTest->new(
+	config => {
+		Power => {
 			enabled => 1,
-			pattern => $pcrd->prepare_tmpfile('capacity', $capacity),
+			all_features => 0,
+			capacity => {
+				enabled => 1,
+				pattern => PCRDFiles->prepare('capacity', $capacity),
+			},
 		},
 	},
 );
@@ -27,7 +29,7 @@ $pcrd->add_test_timer(
 		interval => 0.04,
 		on_tick => sub {
 			$capacity -= 11;
-			$pcrd->update('capacity', $capacity);
+			PCRDFiles->update('capacity', $capacity);
 			$pcrd->test_message(['Power', 'capacity'], $capacity);
 		},
 	)->start

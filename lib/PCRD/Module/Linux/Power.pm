@@ -161,7 +161,7 @@ sub init_life
 	);
 
 	$timer->start;
-	$self->owner->loop->add($timer);
+	$self->owner->notifier->add_child($timer);
 }
 
 sub get_life

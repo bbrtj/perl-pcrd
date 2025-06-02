@@ -8,14 +8,15 @@ use PCRDTest;
 # This tests whether the Performance module's swap works
 ################################################################################
 
-my $pcrd = PCRDTest->new;
-$pcrd->create_daemon(
-	Performance => {
-		enabled => 1,
-		all_features => 0,
-		swap => {
+my $pcrd = PCRDTest->new(
+	config => {
+		Performance => {
 			enabled => 1,
-			pattern => 't/mock/proc/meminfo',
+			all_features => 0,
+			swap => {
+				enabled => 1,
+				pattern => 't/mock/proc/meminfo',
+			},
 		},
 	},
 );

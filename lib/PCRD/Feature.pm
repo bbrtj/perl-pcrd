@@ -3,6 +3,8 @@ package PCRD::Feature;
 use v5.14;
 use warnings;
 
+use Future;
+
 use PCRD::Mite;
 
 # https://github.com/tobyink/p5-mite/issues/39
@@ -162,11 +164,14 @@ sub execute
 	my $method = "$prefixes->{$action}_" . $self->name;
 	my $result = $self->owner->$method($self, $arg);
 
-	foreach my $hook (@{$self->execute_hooks}) {
-		$hook->($action, $arg, $result);
-	}
+	return scalar Future->wrap($result)->then(sub {
+		my ($result) = @_;
+		foreach my $hook (@{$self->execute_hooks}) {
+			$hook->($action, $arg, $result);
+		}
 
-	return $result;
+		return $result;
+	});
 }
 
 sub provides

@@ -3,6 +3,7 @@ use IO::Async::Timer::Periodic;
 
 use lib 't/lib';
 use PCRDTest;
+use PCRDFiles;
 
 ################################################################################
 # This tests whether the System module's uptime works
@@ -11,14 +12,15 @@ use PCRDTest;
 my $upsec = 16541;
 my $idle = 5146;
 
-my $pcrd = PCRDTest->new;
-$pcrd->create_daemon(
-	System => {
-		enabled => 1,
-		all_features => 0,
-		uptime => {
+my $pcrd = PCRDTest->new(
+	config => {
+		System => {
 			enabled => 1,
-			pattern => $pcrd->prepare_tmpfile('uptime', "$upsec $idle"),
+			all_features => 0,
+			uptime => {
+				enabled => 1,
+				pattern => PCRDFiles->prepare('uptime', "$upsec $idle"),
+			},
 		},
 	},
 );
@@ -28,7 +30,7 @@ $pcrd->add_test_timer(
 		interval => 0.04,
 		on_tick => sub {
 			$upsec += 100;
-			$pcrd->update('uptime', "$upsec $idle");
+			PCRDFiles->update('uptime', "$upsec $idle");
 
 			my $d = int($upsec / 60 / 60 / 24);
 			my $h = int($upsec / 60 / 60) % 24;

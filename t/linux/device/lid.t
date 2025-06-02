@@ -3,6 +3,7 @@ use IO::Async::Timer::Periodic;
 
 use lib 't/lib';
 use PCRDTest;
+use PCRDFiles;
 
 ################################################################################
 # This tests whether the Device module's lid status works
@@ -11,14 +12,15 @@ use PCRDTest;
 my $lid = !!0;
 sub get_lid { 'status: ' . (qw(closed open) [$lid]) }
 
-my $pcrd = PCRDTest->new;
-$pcrd->create_daemon(
-	Device => {
-		enabled => 1,
-		all_features => 0,
-		lid => {
+my $pcrd = PCRDTest->new(
+	config => {
+		Device => {
 			enabled => 1,
-			pattern => $pcrd->prepare_tmpfile('lid', get_lid),
+			all_features => 0,
+			lid => {
+				enabled => 1,
+				pattern => PCRDFiles->prepare('lid', get_lid),
+			},
 		},
 	},
 );
@@ -28,7 +30,7 @@ $pcrd->add_test_timer(
 		interval => 0.04,
 		on_tick => sub {
 			$lid = !$lid;
-			$pcrd->update('lid', get_lid);
+			PCRDFiles->update('lid', get_lid);
 			$pcrd->test_message(['Device', 'lid'], $lid);
 		},
 	)->start

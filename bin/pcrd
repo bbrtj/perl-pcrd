@@ -1,0 +1,127 @@
+#!/usr/bin/perl
+
+use v5.14;
+use strict;
+use Getopt::Long;
+use Pod::Usage;
+use IO::Async::Loop;
+
+my $help = !!0;
+my $logs = '/var/log/pcrd.log';
+GetOptions(
+	'h|help' => \$help,
+	'logs=s' => \$logs,
+) or pod2usage(2);
+
+pod2usage(-exitval => 0, -verbose => 2, -noperldoc => 1) if $help;
+
+my $loop = IO::Async::Loop->new;
+
+sub run_user_agent
+{
+	require PCRD::Client::UserAgent;
+	my $ua = PCRD::UserAgent->new;
+	$ua->start($loop);
+	$loop->start;
+}
+
+sub run_daemon
+{
+	require PCRD;
+
+	my $forked = fork;
+	die "could not fork" unless defined $forked;
+	exit if $forked;
+
+	require POSIX;
+	POSIX::setsid() != -1 or die "Can't start a new session: $!";
+	$0 = 'pcrd';
+	open STDOUT, '>', $logs;
+	open STDERR, '>&', STDOUT;
+	chdir '/';
+
+	my $daemon = PCRD->new;
+	$daemon->start;
+	$loop->add($daemon->notifier);
+	$loop->start;
+}
+
+sub run_init
+{
+	require PCRD;
+	PCRD->new(load_config => !!0)->dump_config;
+	say 'initialized';
+}
+
+my $action = shift;
+
+if ($action eq 'user-agent') {
+	run_user_agent;
+}
+elsif ($action eq 'init') {
+	run_init;
+}
+elsif ($action eq 'daemon' || !$action) {
+	run_daemon;
+}
+else {
+	die "Unknown action $action\n";
+}
+
+__END__
+
+=head1 NAME
+
+pcrd - Parameters Control and Reporting Daemon
+
+=head1 SYNOPSIS
+
+pcrd [options] [action]
+
+	Options:
+		--help                          show help
+		--logs FILE                     where to put daemon logs
+
+	Actions:
+		daemon                          runs the daemon (default)
+		user-agent                      runs the user agent
+		init                            initializes the configuration file
+
+=head1 OPTIONS
+
+=over
+
+=item B<--help>
+
+Print a brief help message and exits.
+
+=item B<--logs>
+
+Path to daemon logs file.
+
+=back
+
+=head1 ACTIONS
+
+=over
+
+=item B<daemon>
+
+Runs the program. It will run in the background until stopped. This is default action.
+
+=item B<user-agent>
+
+Runs the user agent part of the program. It should be run as the normal user -
+it will react to daemon commands and execute user-specific commands.
+
+=item B<init>
+
+Initializes the configuration file, commonly found under C</etc/pcrd>. Will not
+overwrite existing configuration.
+
+=back
+
+=head1 DESCRIPTION
+
+This is main program runner of pcrd.
+

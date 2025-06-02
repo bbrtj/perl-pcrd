@@ -8,12 +8,13 @@ use PCRDTest;
 # This tests whether the plugin works
 ################################################################################
 
-my $pcrd = PCRDTest->new;
-$pcrd->create_daemon(
-	TestPlugin => {
-		enabled => 1,
-		plugin => './t/lib/plugin.pm',
-	},
+my $pcrd = PCRDTest->new(
+	config => {
+		TestPlugin => {
+			enabled => 1,
+			plugin => './t/lib/plugin.pm',
+		},
+	}
 );
 
 $pcrd->add_test_timer(

@@ -10,19 +10,20 @@ use PCRDTest;
 
 my $hook_ran;
 
-my $pcrd = PCRDTest->new;
-$pcrd->create_daemon(
-	System => {
-		enabled => 1,
-		all_features => 0,
-		time => {
+my $pcrd = PCRDTest->new(
+	config => {
+		System => {
 			enabled => 1,
-			format => 'CONST',
+			all_features => 0,
+			time => {
+				enabled => 1,
+				format => 'CONST',
+			},
 		},
-	},
+	}
 );
 
-$pcrd->{pcrd}->module('System')->feature('time')->add_execute_hook(
+$pcrd->daemon->module('System')->feature('time')->add_execute_hook(
 	sub {
 		$hook_ran = [@_];
 	}

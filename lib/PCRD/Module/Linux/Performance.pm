@@ -3,6 +3,7 @@ package PCRD::Module::Linux::Performance;
 use v5.14;
 use warnings;
 
+use Future;
 use List::Util qw(sum);
 use IO::Async::Timer::Periodic;
 
@@ -162,7 +163,7 @@ sub init_cpu
 	);
 
 	$timer->start;
-	$self->owner->loop->add($timer);
+	$self->owner->notifier->add_child($timer);
 }
 
 sub get_cpu
@@ -242,22 +243,26 @@ sub init_cpu_auto_scaling
 		reschedule => 'skip',
 		on_tick => sub {
 			my $current = $scaling->execute('r');
-			my $wanted;
+			my $is_charging = $charging->execute('r');
 
-			if ($charging->execute('r')) {
-				$wanted = $feature->config->{ac};
-			}
-			else {
-				$wanted = $feature->config->{battery};
-			}
+			Future->wait_all($current, $is_charging)->on_ready(sub {
+				my $wanted;
 
-			$scaling->execute('w', $wanted)
-				if $wanted ne $current;
+				if ($is_charging->get) {
+					$wanted = $feature->config->{ac};
+				}
+				else {
+					$wanted = $feature->config->{battery};
+				}
+
+				$scaling->execute('w', $wanted)
+					if $wanted ne $current->get;
+			});
 		},
 	);
 
 	$timer->start;
-	$self->owner->loop->add($timer);
+	$self->owner->notifier->add_child($timer);
 }
 
 sub _build_features

@@ -4,6 +4,7 @@ use IO::Async::Timer::Countdown;
 
 use lib 't/lib';
 use PCRDTest;
+use PCRDFiles;
 
 ################################################################################
 # This tests whether the Performance module's cpu_auto_scaling works
@@ -14,28 +15,29 @@ sub get_charging { qw(Discharging Charging) [$charging] }
 my $scaling = 0;
 sub get_scaling { qw(on_ac on_battery) [$scaling % 2] }
 
-my $pcrd = PCRDTest->new;
-$pcrd->create_daemon(
-	probe_interval => 0.01,
-	Power => {
-		enabled => 1,
-		all_features => 0,
-		charging => {
+my $pcrd = PCRDTest->new(
+	config => {
+		probe_interval => 0.01,
+		Power => {
 			enabled => 1,
-			pattern => $pcrd->prepare_tmpfile('charging', get_charging),
+			all_features => 0,
+			charging => {
+				enabled => 1,
+				pattern => PCRDFiles->prepare('charging', get_charging),
+			},
 		},
-	},
-	Performance => {
-		enabled => 1,
-		all_features => 0,
-		cpu_scaling => {
+		Performance => {
 			enabled => 1,
-			pattern => $pcrd->prepare_tmpfile('scaling', get_scaling),
-		},
-		cpu_auto_scaling => {
-			enabled => 1,
-			ac => 'on_ac',
-			battery => 'on_battery',
+			all_features => 0,
+			cpu_scaling => {
+				enabled => 1,
+				pattern => PCRDFiles->prepare('scaling', get_scaling),
+			},
+			cpu_auto_scaling => {
+				enabled => 1,
+				ac => 'on_ac',
+				battery => 'on_battery',
+			},
 		},
 	},
 );
@@ -46,7 +48,7 @@ $pcrd->add_test_timer(
 		on_expire => sub {
 			$charging = !$charging;
 			$scaling++;
-			$pcrd->update('charging', get_charging);
+			PCRDFiles->update('charging', get_charging);
 		},
 	)->start
 );

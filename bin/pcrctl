@@ -6,10 +6,8 @@ use Getopt::Long;
 use Pod::Usage;
 
 my $help = !!0;
-my $logs = 'pcrd.log';
 GetOptions(
 	'h|help' => \$help,
-	'logs=s' => \$logs,
 ) or pod2usage(2);
 
 pod2usage(-exitval => 0, -verbose => 2, -noperldoc => 1) if $help;
@@ -18,10 +16,10 @@ sub run_query
 {
 	my ($module, $feature, $value) = @_;
 
-	require PCRD::Client;
+	require PCRD::Client::Query;
 	require IO::Async::Loop;
 	my $loop = IO::Async::Loop->new;
-	my $client = PCRD::Client->new(
+	my $client = PCRD::Client::Query->new(
 		on_message => sub {
 			my ($ok, $result) = @_;
 			$loop->stop;
@@ -32,57 +30,23 @@ sub run_query
 		},
 	);
 
-	$loop->add(
-		$client->client
-	);
-
+	$client->start($loop);
 	$client->send($module, $feature, $value);
 	$loop->run;
 }
 
-sub run_daemon
-{
-	my ($daemon) = @_;
-
-	if ($daemon) {
-		my $forked = fork;
-		die "could not fork" unless defined $forked;
-		exit if $forked;
-
-		require POSIX;
-		POSIX::setsid() != -1 or die "Can't start a new session: $!";
-		$0 = 'pcrd';
-		open STDOUT, '>', $logs;
-		open STDERR, '>&', STDOUT;
-		chdir '/';
-	}
-
-	require PCRD;
-	my $daemon = PCRD->new;
-	$daemon->start;
-}
-
 my $action = shift;
 
-if ($action eq 'query') {
-	my ($module, $feature, $value) = @ARGV;
-	run_query($module, $feature, $value);
-}
-elsif ($action eq 'run') {
-	my $arg = shift;
-	run_daemon($arg && $arg eq 'daemon');
-}
-elsif ($action eq 'init') {
-	require PCRD;
-	PCRD->new(load_config => !!0)->dump_config;
-	say 'initialized';
-}
 elsif ($action eq 'config') {
 	require PCRD;
 	say PCRD->new->explain_config;
 }
+elsif ($action) {
+	my ($feature, $value) = @ARGV;
+	run_query($action, $feature, $value);
+}
 else {
-	die "Unknown action $action\n";
+	die "Need an action\n";
 }
 
 __END__
@@ -97,13 +61,10 @@ pcrctl [options] [action]
 
 	Options:
 		--help                          show help
-		--logs FILE                     where to put daemon logs
 
 	Actions:
-		run [daemon]                    runs the program loop
-		init                            initializes the configuration file
 		config                          shows possible configuration values
-		query MODULE FEATURE [VALUE]    queries one of the daemon's features
+		MODULE FEATURE [VALUE]          queries one of the daemon's features
 
 =head1 OPTIONS
 
@@ -119,21 +80,11 @@ Print a brief help message and exits.
 
 =over
 
-=item B<run>
-
-Runs the program. It will run until stopped. If C<daemon> is included, it will
-run in the background.
-
-=item B<init>
-
-Initializes the configuration file, commonly found under C<~/.pcrd>. Will not
-overwrite existing configuration.
-
 =item B<config>
 
 Show a complete list of configuration values for enabled modules.
 
-=item B<query>
+=item B<MODULE>
 
 Runs a query to the daemon, setting or getting one of the values. C<MODULE> and
 C<FEATURE> configs are required, existence of C<VALUE> controls whether the
@@ -144,5 +95,5 @@ setting or getting is performed.
 =head1 DESCRIPTION
 
 This program is a pcrd (Parameters Control and Reporting Daemon) control tool.
-It can be used to manage pcrd instance and query its modules.
+It can be used to query its modules.
 

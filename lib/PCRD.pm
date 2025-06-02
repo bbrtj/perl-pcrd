@@ -5,28 +5,24 @@ use warnings;
 use autodie;
 use IO::Socket::UNIX;
 use IO::Async::Listener;
-use IO::Async::Loop;
+use PCRD::Notifier;
 use Scalar::Util qw(looks_like_number);
 use Fcntl qw(LOCK_EX LOCK_NB);
 use English;
 
 use PCRD::Util;
 use PCRD::Module;
+use PCRD::Protocol;
+use PCRD::Listener;
 
 use PCRD::Mite;
 
 extends 'PCRD::ConfiguredObject';
 
-# socket constants (vars for easier interpolation)
-my $ps = "\t";    # protocol separator
-my $ok = 'ok';    # success
-my $err = 'err';    # error
-my $eot = "\n";    # end of transmission
-
-has 'loop' => (
+has 'notifier' => (
 	is => 'ro',
 	default => sub {
-		IO::Async::Loop->new;
+		PCRD::Notifier->new;
 	},
 	init_arg => undef,
 );
@@ -46,7 +42,7 @@ has 'socket_config' => (
 	isa => 'HashRef',
 	default => sub {
 		my $hash = shift->config_obj->get_value('socket', {});
-		$hash->{file} //= '/tmp/pcrd.sock';
+		$hash->{file} //= '/var/run/pcrd.sock';
 		$hash->{user} //= $EUID;
 		$hash->{group} //= $EGID;
 		$hash->{perm} //= '0660';
@@ -74,10 +70,13 @@ has 'socket' => (
 
 has 'listener' => (
 	is => 'ro',
-	isa => "InstanceOf['IO::Async::Listener']",
-	builder => '_build_listener',
+	isa => "InstanceOf['PCRD::Listener']",
+	default => sub { PCRD::Listener->new(owner => $_[0]) },
 	lazy => 1,
 	init_arg => undef,
+	handles => {
+		broadcast => 'send_to_agent',
+	},
 );
 
 sub _build_modules
@@ -157,33 +156,6 @@ sub _build_socket
 	return $socket;
 }
 
-sub _build_listener
-{
-	my ($self) = @_;
-
-	my $listener = IO::Async::Listener->new(
-		on_stream => sub {
-			my (undef, $stream) = @_;
-
-			$stream->configure(
-				on_read => sub {
-					$self->handle_message(@_);
-					return 0;
-				}
-			);
-
-			$self->{loop}->add($stream);
-		}
-	);
-
-	$self->{loop}->add($listener);
-	$listener->listen(
-		handle => $self->socket,
-	);
-
-	return $listener;
-}
-
 sub dump_config
 {
 	my ($self) = @_;
@@ -247,51 +219,6 @@ sub module
 	return $self->modules->{$name} // die "No such module: $name";
 }
 
-sub handle_message
-{
-	my ($self, $stream, $buffref, $eof) = @_;
-	my $write = sub {
-		my ($prefix, $message) = @_;
-
-		say "< $message";
-		$stream->write("${prefix}${ps}${message}$eot");
-	};
-
-	while ($$buffref =~ s/^(.*)$eot//) {
-		say "> $1";
-		my ($module, $feature_name, $action, $value) = split /$ps/, $1, 4;
-
-		if (!$self->modules->{$module}) {
-			$write->($err, "no module '$module'");
-			next;
-		}
-
-		my $feature = $self->modules->{$module}->features->{$feature_name};
-		if (!$feature) {
-			$write->($err, "module '$module' does not have feature '$feature_name'");
-			next;
-		}
-
-		if (!$feature->provides($action)) {
-			$write->($err, "feature '$feature_name' from module '$module' does not provide action '$action'");
-			next;
-		}
-
-		my $result;
-		my $ex = PCRD::Util::try {
-			$result = $feature->execute($action, $value);
-		};
-
-		if ($ex) {
-			$ex =~ s/\n//g;
-			$write->($err, $ex);
-			next;
-		}
-
-		$write->($ok, $result);
-	}
-}
-
 sub start
 {
 	my ($self) = @_;
@@ -308,14 +235,6 @@ sub start
 
 	say 'starting the daemon...';
 	$self->listener;
-	$self->loop->run;
-}
-
-sub stop
-{
-	my ($self) = @_;
-
-	$self->loop->stop;
 }
 
 1;

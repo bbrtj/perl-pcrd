@@ -3,6 +3,7 @@ use IO::Async::Timer::Periodic;
 
 use lib 't/lib';
 use PCRDTest;
+use PCRDFiles;
 
 ################################################################################
 # This tests whether the Power module's battery life works
@@ -11,15 +12,16 @@ use PCRDTest;
 my $energy = 12500000;
 my $ticks = 0;
 
-my $pcrd = PCRDTest->new;
-$pcrd->create_daemon(
-	probe_interval => 0.01,
-	Power => {
-		enabled => 1,
-		all_features => 0,
-		life => {
+my $pcrd = PCRDTest->new(
+	config => {
+		probe_interval => 0.01,
+		Power => {
 			enabled => 1,
-			pattern => $pcrd->prepare_tmpfile('energy', $energy),
+			all_features => 0,
+			life => {
+				enabled => 1,
+				pattern => PCRDFiles->prepare('energy', $energy),
+			},
 		},
 	},
 );
@@ -29,7 +31,7 @@ $pcrd->add_test_timer(
 		interval => 0.01,
 		on_tick => sub {
 			$energy -= 100;
-			$pcrd->update('energy', $energy);
+			PCRDFiles->update('energy', $energy);
 
 			if (++$ticks > 6) {
 				$pcrd->test_message(['Power', 'life'], sub { $_ >= 20 && $_ <= 21 });

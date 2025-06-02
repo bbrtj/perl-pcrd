@@ -2,105 +2,120 @@ package PCRDTest;
 
 use v5.14;
 use warnings;
-use File::Temp qw(tempfile tempdir);
 use Scalar::Util qw(looks_like_number);
+use File::Temp qw(tempfile);
 
 use Data::Dumper;
 use Test2::Tools::Basic;
 use Test2::Tools::Compare;
 use IO::Socket::UNIX;
-use IO::Async::Stream;
+use IO::Async::Loop;
 use IO::Async::Timer::Countdown;
 use PCRD;
-use PCRD::Client;
+use PCRD::Client::Query;
+use PCRD::Client::UserAgent;
 use PCRD::Config::Memory;
+use PCRDFiles;
+
+## ATTRS (no mite possible in t/lib)
+
+sub loop
+{
+	return $_[0]->{loop} //= IO::Async::Loop->new;
+}
+
+sub config
+{
+	return $_[0]->{config};
+}
+
+sub daemon
+{
+	return $_[0]->{daemon} //= $_[0]->_build_daemon;
+}
+
+sub user_agent
+{
+	return $_[0]->{user_agent} //= $_[0]->_build_user_agent;
+}
+
+sub client
+{
+	return $_[0]->{client} //= $_[0]->_build_client;
+}
+
+sub msgs
+{
+	return $_[0]->{msgs} //= {
+		got => [],
+		expected => [],
+	};
+}
+
+sub timers
+{
+	return $_[0]->{timers} //= [];
+}
+
+## CODE
 
 sub new
 {
-	my ($class) = @_;
-	my $dir = tempdir('pcrdXXXX', CLEANUP => 1);
+	my ($class, %args) = @_;
 
-	return bless {dir => $dir}, $class;
-}
+	my $self = bless {%args}, $class;
 
-sub _update
-{
-	my ($self, $fh, $value) = @_;
-
-	local $| = 1;
-	truncate $fh, 0;
-	print {$fh} $value;
-	seek $fh, 0, 0;
-}
-
-sub prepare_tmpfile
-{
-	my ($self, $name, $contents) = @_;
-	my ($fh, $file) = tempfile("${name}XXXX", DIR => $self->{dir});
-	$self->_update($fh, $contents);
-
-	$self->{files}{$name} = {
-		fh => $fh,
-		file => $file,
-	};
-
-	return $file;
-}
-
-sub update
-{
-	my ($self, $name, $contents) = @_;
-	$self->_update($self->{files}{$name}{fh}, $contents);
-}
-
-sub tmpfile_contents
-{
-	my ($self, $name) = @_;
-	my $fh = $self->{files}{$name}{fh};
-
-	my @lines = readline $fh;
-	seek $fh, 0, 0;
-
-	return join '', @lines;
-}
-
-sub create_daemon
-{
-	my ($self, %config) = @_;
-	return if $self->{pcrd};
-
-	(undef, $config{socket}{file}) = tempfile('sockXXXX', DIR => $self->{dir}, OPEN => 0);
-	my $memory_config = PCRD::Config::Memory->new(
-		values => \%config,
-	);
-
-	$self->{pcrd} = PCRD->new(config_obj => $memory_config);
-
-	# early register socket, so that it will be created for the client
-	$self->{pcrd}->listener;
-	$self->_create_client($memory_config);
+	$self->daemon;
+	$self->user_agent;
+	$self->client;
 
 	return $self;
 }
 
-sub _create_client
+sub _build_daemon
 {
-	my ($self, $memory_config) = @_;
+	my ($self) = @_;
 
-	$self->{client} = PCRD::Client->new(
-		config_obj => $memory_config,
+	my $config = $self->config;
+	(undef, $config->{socket}{file}) = tempfile('sockXXXX', DIR => PCRDFiles->dir, OPEN => 0);
+
+	my $daemon = PCRD->new(
+		config_obj => PCRD::Config::Memory->new(
+			values => $config,
+		)
+	);
+
+	# early register socket, so that it will be created for the client
+	$daemon->listener;
+	$self->loop->add($daemon->notifier);
+
+	return $daemon;
+}
+
+sub _build_user_agent
+{
+	my ($self) = @_;
+
+	my $agent = PCRD::Client::UserAgent->new(
+		config_obj => $self->daemon->config_obj,
+	);
+
+	return $agent;
+}
+
+sub _build_client
+{
+	my ($self) = @_;
+
+	my $client = PCRD::Client::Query->new(
+		config_obj => $self->daemon->config_obj,
 		on_message => sub {
 			my ($ok, $data) = @_;
-			push @{$self->{msgs}{got}}, [$ok, $data];
+			push @{$self->msgs->{got}}, [$ok, $data];
 		},
 	);
 
-	$self->{msgs}{got} = [];
-	$self->{msgs}{expected} = [];
-
-	$self->loop->add(
-		$self->{client}->client
-	);
+	return $client;
 }
 
 sub test_message
@@ -110,17 +125,17 @@ sub test_message
 	my $name = join('.', @{$args}) . ' ok';
 	$name .= " ($name_extra)" if defined $name_extra;
 
-	$self->{client}->send(@$args);
-	push @{$self->{msgs}{expected}}, [$expected, $name];
+	$self->client->send(@$args);
+	push @{$self->msgs->{expected}}, [$expected, $name];
 }
 
 sub run_tests
 {
 	my ($self) = @_;
 
-	for my $i (keys @{$self->{msgs}{got}}) {
-		my ($success, $got) = @{$self->{msgs}{got}[$i]};
-		my ($expected, $message) = @{$self->{msgs}{expected}[$i]};
+	for my $i (keys @{$self->msgs->{got}}) {
+		my ($success, $got) = @{$self->msgs->{got}[$i]};
+		my ($expected, $message) = @{$self->msgs->{expected}[$i]};
 
 		ok($success, 'response message was success');
 		if (ref $expected eq 'CODE') {
@@ -138,11 +153,11 @@ sub run_tests
 		}
 	}
 
-	my $sent = @{$self->{msgs}{expected}};
-	my $got = @{$self->{msgs}{got}};
+	my $sent = @{$self->msgs->{expected}};
+	my $got = @{$self->msgs->{got}};
 	if ($sent != $got) {
 		fail("Sent $sent messages but only got $got back");
-		diag 'No responses for: ' . Dumper(@{$self->{msgs}{expected}}[$got .. $sent - 1]);
+		diag 'No responses for: ' . Dumper(@{$self->msgs->{expected}}[$got .. $sent - 1]);
 	}
 }
 
@@ -150,7 +165,7 @@ sub add_test_timer
 {
 	my ($self, $timer) = @_;
 
-	push @{$self->{timers}}, $timer;
+	push @{$self->timers}, $timer;
 	$self->loop->add($timer);
 }
 
@@ -167,12 +182,12 @@ sub start
 			IO::Async::Timer::Countdown->new(
 				delay => $timeout,
 				on_expire => sub {
-					foreach my $timer (@{$self->{timers}}) {
+					foreach my $timer (@{$self->timers}) {
 						$timer->stop;
 					}
 				},
 			)->start
-		) if $self->{timers};
+		) if @{$self->timers};
 
 		$self->loop->add(
 			IO::Async::Timer::Countdown->new(
@@ -184,21 +199,17 @@ sub start
 		);
 	}
 
-	$self->{pcrd}->start;
+	$self->daemon->start;
+	$self->user_agent->start($self->loop);
+	$self->client->start($self->loop);
+	$self->loop->run;
 }
 
 sub stop
 {
 	my ($self) = @_;
 
-	$self->{pcrd}->stop;
-}
-
-sub loop
-{
-	my ($self) = @_;
-
-	$self->{pcrd}->loop;
+	$self->loop->stop;
 }
 
 1;

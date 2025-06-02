@@ -7,21 +7,16 @@ use IO::Socket::UNIX;
 use IO::Async::Stream;
 
 use PCRD::Mite;
+use PCRD::Protocol;
 
 extends 'PCRD::ConfiguredObject';
-
-# socket constants (vars for easier interpolation)
-my $ps = "\t";    # protocol separator
-my $ok = 'ok';    # success
-my $err = 'err';    # error
-my $eot = "\n";    # end of transmission
 
 has 'socket_config' => (
 	is => 'ro',
 	isa => 'HashRef',
 	default => sub {
 		my $hash = shift->config_obj->get_value('socket', {});
-		$hash->{file} //= '/tmp/pcrd.sock';
+		$hash->{file} //= '/var/run/pcrd.sock';
 
 		return $hash;
 	},
@@ -35,45 +30,65 @@ has 'on_message' => (
 	required => 1,
 );
 
-has 'client' => (
+has 'stream' => (
 	is => 'ro',
 	isa => "InstanceOf['IO::Async::Stream']",
-	builder => '_build_client',
+	builder => '_build_stream',
 	lazy => 1,
 	init_arg => undef,
 );
 
-sub _build_client
+sub _build_stream
 {
 	my ($self) = @_;
 
 	my $socket = IO::Socket::UNIX->new(
 		Type => SOCK_STREAM,
 		Peer => $self->socket_config->{file},
-	) or die "Cannot create socket client - $IO::Socket::errstr";
+	) or die "Cannot create socket stream - $IO::Socket::errstr";
 
-	my $on_message = $self->on_message;
 	return IO::Async::Stream->new(
 		handle => $socket,
-		on_read => sub {
-			my ($stream, $buffref, $eof) = @_;
-
-			while ($$buffref =~ s/^(.*)$eot//) {
-				my ($status, $data) = split /$ps/, $1, 2;
-				$on_message->($status eq $ok, $data);
-			}
-
-			return 0;
-		}
+		on_read => $self->_message_handler,
 	);
+}
+
+sub _message_handler
+{
+	my ($self) = @_;
+	my $on_message = $self->on_message;
+
+	return sub {
+		my ($stream, $buffref, $eof) = @_;
+
+		while (my @parts = PCRD::Protocol::extract_message($buffref)) {
+			$on_message->(@parts);
+		}
+
+		return 0;
+	};
 }
 
 sub send
 {
-	my ($self, $module, $feature, $value) = @_;
-	my $action = defined $value ? 'w' : 'r';
+	my ($self, @parts) = @_;
 
-	$self->client->write(join($ps, grep { defined } $module, $feature, $action, $value) . $eot);
+	$self->stream->write(PCRD::Protocol::message(grep { defined } @parts));
+}
+
+sub start
+{
+	my ($self, $loop_or_notifier) = @_;
+
+	if ($loop_or_notifier->isa('IO::Async::Loop')) {
+		$loop_or_notifier->add($self->stream);
+	}
+	elsif ($loop_or_notifier->isa('IO::Async::Notifier')) {
+		$loop_or_notifier->add_child($self->stream);
+	}
+	else {
+		die 'Cannot start client - neither loop or notifier passed';
+	}
 }
 
 1;

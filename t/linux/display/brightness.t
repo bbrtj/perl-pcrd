@@ -3,6 +3,7 @@ use IO::Async::Timer::Periodic;
 
 use lib 't/lib';
 use PCRDTest;
+use PCRDFiles;
 
 ################################################################################
 # This tests whether the Display module's brightness works
@@ -11,15 +12,16 @@ use PCRDTest;
 my $current = 300;
 my $max = 1000;
 
-my $pcrd = PCRDTest->new;
-$pcrd->create_daemon(
-	Display => {
-		enabled => 1,
-		all_features => 0,
-		brightness => {
+my $pcrd = PCRDTest->new(
+	config => {
+		Display => {
 			enabled => 1,
-			now_pattern => $pcrd->prepare_tmpfile('current', $current),
-			max_pattern => $pcrd->prepare_tmpfile('max', $max),
+			all_features => 0,
+			brightness => {
+				enabled => 1,
+				now_pattern => PCRDFiles->prepare('current', $current),
+				max_pattern => PCRDFiles->prepare('max', $max),
+			},
 		},
 	},
 );

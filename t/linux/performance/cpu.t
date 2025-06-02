@@ -3,6 +3,7 @@ use IO::Async::Timer::Periodic;
 
 use lib 't/lib';
 use PCRDTest;
+use PCRDFiles;
 
 ################################################################################
 # This tests whether the Performance module's cpu works
@@ -20,15 +21,16 @@ sub get_stat
 	return join ' ', 'cpu', $cpu_utilized_base - 50, 30, 20, $cpu_idle_base;
 }
 
-my $pcrd = PCRDTest->new;
-$pcrd->create_daemon(
-	probe_interval => 0.01,
-	Performance => {
-		enabled => 1,
-		all_features => 0,
-		cpu => {
+my $pcrd = PCRDTest->new(
+	config => {
+		probe_interval => 0.01,
+		Performance => {
 			enabled => 1,
-			pattern => $pcrd->prepare_tmpfile('stat', get_stat),
+			all_features => 0,
+			cpu => {
+				enabled => 1,
+				pattern => PCRDFiles->prepare('stat', get_stat),
+			},
 		},
 	},
 );
@@ -37,7 +39,7 @@ $pcrd->add_test_timer(
 	IO::Async::Timer::Periodic->new(
 		interval => 0.005,
 		on_tick => sub {
-			$pcrd->update('stat', get_stat);
+			PCRDFiles->update('stat', get_stat);
 		},
 	)->start
 );

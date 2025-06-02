@@ -8,14 +8,15 @@ use PCRDTest;
 # This tests whether the Performance module's storage works
 ################################################################################
 
-my $pcrd = PCRDTest->new;
-$pcrd->create_daemon(
-	Performance => {
-		enabled => 1,
-		all_features => 0,
-		storage => {
+my $pcrd = PCRDTest->new(
+	config => {
+		Performance => {
 			enabled => 1,
-			command => 't/mock/bin/df',
+			all_features => 0,
+			storage => {
+				enabled => 1,
+				command => 't/mock/bin/df',
+			},
 		},
 	},
 );

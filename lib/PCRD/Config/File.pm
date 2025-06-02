@@ -13,7 +13,7 @@ has 'filename' => (
 	isa => 'Str',
 	default => sub {
 		my $self = shift;
-		return $ENV{PCRD_CONFIG} // "$ENV{HOME}/.pcrd";
+		return $ENV{PCRD_CONFIG} // "/etc/pcrd.conf";
 	},
 );
 
