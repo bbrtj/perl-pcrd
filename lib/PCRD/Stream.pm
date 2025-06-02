@@ -152,9 +152,11 @@ sub _handle_query
 			next;
 		}
 
-		$result->on_ready(sub {
-			$write->(!!1, $result->get);
-		});
+		$result->on_ready(
+			sub {
+				$write->(!!1, $result->get);
+			}
+		);
 	}
 }
 

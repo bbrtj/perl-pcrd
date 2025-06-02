@@ -35,19 +35,21 @@ sub get_volume
 	my ($self, $feature) = @_;
 
 	return $self->owner->broadcast($self->config->{command}, 'get-sink-volume', '@DEFAULT_SINK@')
-		->then(sub {
-			my @volumes;
-			foreach my $line (@_) {
-				while ($line =~ m/(\d+)%/g) {
-					push @volumes, $1;
+		->then(
+			sub {
+				my @volumes;
+				foreach my $line (@_) {
+					while ($line =~ m/(\d+)%/g) {
+						push @volumes, $1;
+					}
 				}
-			}
 
-			return -1
+				return -1
 				unless @volumes > 0;
 
-			return sum(@volumes) / @volumes / 100;
-		});
+				return sum(@volumes) / @volumes / 100;
+			}
+		);
 }
 
 sub set_volume
@@ -81,14 +83,16 @@ sub get_mute
 {
 	my ($self, $feature) = @_;
 	$self->owner->broadcast($self->config->{command}, 'get-sink-mute', '@DEFAULT_SINK@')
-		->then(sub {
-			foreach my $line (@_) {
-				return !!1
+		->then(
+			sub {
+				foreach my $line (@_) {
+					return !!1
 					if $line =~ m/\byes\b/i;
-			}
+				}
 
-			return !!0;
-		});
+				return !!0;
+			}
+		);
 }
 
 sub set_mute

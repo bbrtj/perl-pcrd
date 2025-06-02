@@ -245,19 +245,21 @@ sub init_cpu_auto_scaling
 			my $current = $scaling->execute('r');
 			my $is_charging = $charging->execute('r');
 
-			Future->wait_all($current, $is_charging)->on_ready(sub {
-				my $wanted;
+			Future->wait_all($current, $is_charging)->on_ready(
+				sub {
+					my $wanted;
 
-				if ($is_charging->get) {
-					$wanted = $feature->config->{ac};
-				}
-				else {
-					$wanted = $feature->config->{battery};
-				}
+					if ($is_charging->get) {
+						$wanted = $feature->config->{ac};
+					}
+					else {
+						$wanted = $feature->config->{battery};
+					}
 
-				$scaling->execute('w', $wanted)
-					if $wanted ne $current->get;
-			});
+					$scaling->execute('w', $wanted)
+						if $wanted ne $current->get;
+				}
+			);
 		},
 	);
 

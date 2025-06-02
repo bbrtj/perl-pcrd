@@ -164,14 +164,16 @@ sub execute
 	my $method = "$prefixes->{$action}_" . $self->name;
 	my $result = $self->owner->$method($self, $arg);
 
-	return scalar Future->wrap($result)->then(sub {
-		my ($result) = @_;
-		foreach my $hook (@{$self->execute_hooks}) {
-			$hook->($action, $arg, $result);
-		}
+	return scalar Future->wrap($result)->then(
+		sub {
+			my ($result) = @_;
+			foreach my $hook (@{$self->execute_hooks}) {
+				$hook->($action, $arg, $result);
+			}
 
-		return $result;
-	});
+			return $result;
+		}
+	);
 }
 
 sub provides
