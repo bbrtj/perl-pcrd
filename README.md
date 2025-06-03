@@ -1,3 +1,7 @@
+<div align="center" width="100%">
+    <p><img width="60%" src="art/logo.png" alt="logo"></p>
+</div>
+
 # Parameters Control and Reporting Daemon
 A Perl module to control local desktop environment. It is supposed to be used
 together with WMs that do not provide DE-like features like brightness control
