@@ -3,6 +3,7 @@ package PCRD::Stream;
 use v5.14;
 use warnings;
 
+use Future;
 use Scalar::Util qw(weaken);
 
 use PCRD::Mite;
@@ -141,22 +142,21 @@ sub _handle_query
 			next;
 		}
 
-		my $result;
-		my $ex = PCRD::Util::try {
-			$result = $feature->execute($action, $value);
-		};
-
-		if ($ex) {
-			$ex =~ s/\n//g;
-			$write->(!!0, $ex);
-			next;
-		}
-
-		$result->on_ready(
-			sub {
-				$write->(!!1, $result->get);
-			}
-		);
+		Future->call($feature->can('execute'), $feature, $action, $value)
+			->retain
+			->on_done(
+				sub {
+					$write->(!!1, @_);
+				}
+			)
+			->on_fail(
+				sub {
+					my $ex = shift;
+					$ex =~ s/\n//g;
+					$write->(!!0, $ex);
+				}
+			)
+			;
 	}
 }
 
@@ -178,7 +178,7 @@ sub _handle_user_agent
 			$future->done(@result);
 		}
 		else {
-			$future->fail(@result);
+			$future->fail(join "\n", @result);
 		}
 	}
 }
