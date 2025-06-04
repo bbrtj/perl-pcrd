@@ -248,9 +248,13 @@ PCRD - Parameters Control and Reporting Daemon
 =head1 SYNOPSIS
 
 	use PCRD;
+	use IO::Async::Loop;
 
-	my $daemon = $pcrd->new;
+	my $loop = IO::Async::Loop->new;
+	my $daemon = PCRD->new;
 	$daemon->start;
+	$loop->add($daemon->notifier);
+	$loop->start;
 
 =head1 DESCRIPTION
 
