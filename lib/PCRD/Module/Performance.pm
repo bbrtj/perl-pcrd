@@ -24,7 +24,6 @@ sub check_cpu_scaling { ... }
 sub get_cpu_scaling { ... }
 sub set_cpu_scaling { ... }
 
-sub check_cpu_auto_scaling { ... }
 sub init_cpu_auto_scaling { ... }
 
 sub _build_features
@@ -65,6 +64,10 @@ sub _build_features
 					value => 'powersave',
 				},
 			},
+			dependencies => [
+				'Power.charging',
+				'Performance.cpu_scaling',
+			],
 		},
 	};
 }

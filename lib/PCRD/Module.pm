@@ -75,7 +75,6 @@ sub _load_features
 		);
 		next unless $feat->enabled;
 
-		$feat->prepare;
 		$loaded{$key} = $feat;
 	}
 
@@ -93,22 +92,6 @@ sub feature
 	my ($self, $name) = @_;
 
 	return $self->features->{$name} // die "No such feature: $name";
-}
-
-sub check_dependency
-{
-	my ($self, $name) = @_;
-	my ($module, $feature) = split /\./, $name;
-
-	my $feat;
-	my $ex = PCRD::Util::try {
-		$feat = $self->owner->module($module)->feature($feature);
-		$feat->check(silent => 1);
-	};
-
-	# the module will not be functional yet if it needs a connected user agent.
-	# assume it will be functional once it does.
-	return $feat->functional || $feat->needs_agent ? undef : ['dependency', $name];
 }
 
 sub check

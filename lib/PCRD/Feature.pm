@@ -51,6 +51,13 @@ has 'mode' => (
 	required => 1,
 );
 
+has 'dependencies' => (
+	is => 'ro',
+	isa => 'PCRDDependencies',
+	coerce => 1,
+	default => sub { {} },
+);
+
 has 'config_def' => (
 	is => 'ro',
 	isa => 'HashRef',
@@ -120,6 +127,8 @@ sub prepare
 	my ($self) = @_;
 	return if $self->vars->{_prepared};
 
+	$self->prepare_dependencies;
+
 	my $prepare_method = $self->owner->can("prepare_$self->{name}");
 	if ($prepare_method) {
 		$self->owner->$prepare_method($self);
@@ -132,6 +141,12 @@ sub prepare
 sub check
 {
 	my ($self, %args) = @_;
+	$self->prepare;
+
+	if ($args{dependencies}) {
+		$self->check_dependencies;
+		return;
+	}
 
 	if (!$self->needs_agent xor $args{agent_present}) {
 		my $check_method = $self->owner->can("check_$self->{name}");
@@ -234,6 +249,37 @@ sub dump_config
 
 	my $str = join "\n", map { "$_=$current{$_}" } sort keys %current;
 	return $str || '(no config)';
+}
+
+sub prepare_dependencies
+{
+	my ($self) = @_;
+
+	my $deps = $self->dependencies;
+	foreach my $name (keys %$deps) {
+		my ($module, $feature) = split /\./, $name;
+
+		my $ex = PCRD::Util::try {
+			$deps->{$name} = $self->owner->owner->module($module)->feature($feature);
+		};
+	}
+}
+
+sub check_dependencies
+{
+	my ($self) = @_;
+
+	my $deps = $self->dependencies;
+	foreach my $name (keys %$deps) {
+		my $feat = $deps->{$name};
+
+		# the module will not be functional yet if it needs a connected user agent.
+		# assume it will be functional once it does.
+		return ['dependency', $name]
+			unless $feat && ($feat->functional || $feat->needs_agent);
+	}
+
+	return undef;
 }
 
 1;

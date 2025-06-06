@@ -221,22 +221,12 @@ sub set_cpu_scaling
 
 ### CPU AUTO SCALING
 
-sub check_cpu_auto_scaling
-{
-	my ($self, $feature) = @_;
-
-	return
-		$self->check_dependency('Performance.cpu_scaling') //
-		$self->check_dependency('Power.charging') //
-		undef;
-}
-
 sub init_cpu_auto_scaling
 {
 	my ($self, $feature) = @_;
 
-	my $scaling = $self->feature('cpu_scaling');
-	my $charging = $self->owner->module('Power')->feature('charging');
+	my $scaling = $feature->dependencies->{'Performance.cpu_scaling'};
+	my $charging = $feature->dependencies->{'Power.charging'};
 
 	my $timer = IO::Async::Timer::Periodic->new(
 		interval => $self->owner->probe_interval,

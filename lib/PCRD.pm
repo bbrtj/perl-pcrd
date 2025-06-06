@@ -176,6 +176,14 @@ sub check_modules
 	foreach my $module (sort keys %$modules) {
 		$modules->{$module}->check(%args);
 	}
+
+	# after all features are checked, check their dependencies
+	# TODO: this # should be done after all futures from the previous foreach are complete
+	if (!$args{agent_present}) {
+		foreach my $module (sort keys %$modules) {
+			$modules->{$module}->check(%args, dependencies => 1);
+		}
+	}
 }
 
 sub module
