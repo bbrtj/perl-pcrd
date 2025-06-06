@@ -108,6 +108,7 @@ sub register_user_agent
 		if defined $self->user_agent;
 
 	$self->set_user_agent($ua);
+	$self->owner->check_modules(agent_present => 1);
 }
 
 sub unregister_stream

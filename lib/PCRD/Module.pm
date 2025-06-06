@@ -100,27 +100,25 @@ sub check_dependency
 	my ($self, $name) = @_;
 	my ($module, $feature) = split /\./, $name;
 
-	my $ok = !!0;
+	my $feat;
 	my $ex = PCRD::Util::try {
-		$ok = !defined $self->owner->module($module)->feature($feature)->check;
+		$feat = $self->owner->module($module)->feature($feature);
+		$feat->check(silent => 1);
 	};
 
-	return $ok ? undef : ['dependency', $name];
+	# the module will not be functional yet if it needs a connected user agent.
+	# assume it will be functional once it does.
+	return $feat->functional || $feat->needs_agent ? undef : ['dependency', $name];
 }
 
 sub check
 {
-	my ($self) = @_;
+	my ($self, %args) = @_;
 
-	my $module_name = $self->name;
 	my $features = $self->features;
-	my %check_hash;
-
-	foreach my $feature_name (keys %$features) {
-		$check_hash{"$module_name.$feature_name"} = $features->{$feature_name};
+	foreach my $feature_name (sort keys %$features) {
+		$features->{$feature_name}->check(%args);
 	}
-
-	return \%check_hash;
 }
 
 sub load_plugin

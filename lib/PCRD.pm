@@ -170,46 +170,12 @@ sub explain_config
 
 sub check_modules
 {
-	my ($self) = @_;
+	my ($self, %args) = @_;
 	my $modules = $self->modules;
 
-	# TODO: translations?
-	state $error_text = {
-		'unique' => "Zero or multiple files found by pattern '%s'",
-		'found' => "Zero files found by pattern '%s'",
-		'readable' => "Files found by pattern '%s' are not readable",
-		'writable' => "Files found by pattern '%s' are not writable",
-		'command' => "Command does not run: %s",
-		'dependency' => "Failure to resolve dependency on feature '%s'",
-		'result' => "Unexpected result of querying the device's resource '%s'",
-	};
-
-	my %checklist;
-	foreach my $module (values %$modules) {
-		%checklist = (%checklist, %{$module->check});
+	foreach my $module (sort keys %$modules) {
+		$modules->{$module}->check(%args);
 	}
-
-	my $success = !!1;
-	foreach my $item (sort keys %checklist) {
-		print "Checking '$item'... ";
-
-		my $this_error = $checklist{$item}->check;
-		$success &&= !defined $this_error;
-
-		if (defined $this_error) {
-			say 'ERROR!';
-			warn sprintf($error_text->{$this_error->[0]}, $this_error->[1]) . "\n";
-			warn "'$item' will not work properly with current configuration.\n";
-			warn $checklist{$item}->error_string . "\n";
-			warn "Current config:\n" . $checklist{$item}->dump_config . "\n";
-			warn "\n";
-		}
-		else {
-			say 'ok';
-		}
-	}
-
-	return $success;
 }
 
 sub module
@@ -223,8 +189,7 @@ sub start
 {
 	my ($self) = @_;
 
-	die "PCRD is not capable of running on this system with current configuration\n"
-		unless $self->check_modules;
+	$self->check_modules;
 
 	die 'no modules specified, nothing to do'
 		unless keys %{$self->modules};

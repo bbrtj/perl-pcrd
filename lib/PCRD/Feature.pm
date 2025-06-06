@@ -5,6 +5,8 @@ use warnings;
 
 use Future;
 
+use PCRD::CheckFailed;
+
 use PCRD::Mite;
 
 # https://github.com/tobyink/p5-mite/issues/39
@@ -26,6 +28,20 @@ has 'desc' => (
 has 'info' => (
 	is => 'ro',
 	isa => 'Str',
+);
+
+has 'needs_agent' => (
+	is => 'ro',
+	isa => 'Bool',
+	default => !!0,
+);
+
+has 'functional' => (
+	is => 'ro',
+	isa => 'Bool',
+	writer => '_set_functional',
+	default => sub { !!0 },
+	init_arg => undef,
 );
 
 has 'mode' => (
@@ -115,14 +131,31 @@ sub prepare
 # check if feature is functional (done after preparing)
 sub check
 {
-	my ($self) = @_;
-	my $check_method = $self->owner->can("check_$self->{name}");
+	my ($self, %args) = @_;
 
-	if ($check_method) {
-		return $self->owner->$check_method($self);
+	if (!$self->needs_agent xor $args{agent_present}) {
+		my $check_method = $self->owner->can("check_$self->{name}");
+
+		if ($check_method) {
+			Future->wrap($self->owner->$check_method($self))
+				->retain
+				->on_done(
+					sub {
+						my $res = shift;
+
+						PCRD::CheckFailed->new(
+							feature => $self,
+							error => $res,
+						)->raise_warning if defined $res && !$args{silent};
+
+						$self->_set_functional(!defined $res);
+					},
+				);
+		}
+		else {
+			$self->_set_functional(!!1);
+		}
 	}
-
-	return undef;
 }
 
 # init feature for operation (done after checking)
@@ -132,6 +165,9 @@ sub init
 	return if $self->vars->{_initialized};
 
 	if ($self->provides('i')) {
+		die 'cannot initialize when needs_agent is present!'
+			if $self->needs_agent;
+
 		my $init_method = "init_$self->{name}";
 
 		$self->owner->$init_method($self);
@@ -161,6 +197,9 @@ sub execute
 	die "cannot execute action $action for " . $self->name
 		unless $prefixes->{$action};
 
+	die 'feature ' . $self->name . ' is not functional'
+		unless $self->functional;
+
 	my $method = "$prefixes->{$action}_" . $self->name;
 	my $result = $self->owner->$method($self, $arg);
 
@@ -181,13 +220,6 @@ sub provides
 	my ($self, $action) = @_;
 
 	return !!$self->mode->{$action};
-}
-
-sub error_string
-{
-	my ($self) = @_;
-
-	return join "\n", grep { defined } $self->desc, $self->info;
 }
 
 sub dump_config

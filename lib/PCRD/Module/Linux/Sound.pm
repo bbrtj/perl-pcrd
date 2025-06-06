@@ -21,13 +21,16 @@ sub check_volume
 {
 	my ($self, $feature) = @_;
 
-	my @lines;
-	my $ex = PCRD::Util::try {
-		@lines = PCRD::Util::slurp_command($self->config->{command}, 'info');
-	};
-
-	return ['command', $ex || '(returned nothing)'] unless !$ex && @lines > 0;
-	return undef;
+	return $self->owner->broadcast($self->config->{command}, 'info')
+		->then(
+			sub {
+				return ['command', '(returned nothing)'] unless @_ > 0;
+				return undef;
+			},
+			sub {
+				return Future->done(['command', shift]);
+			}
+		);
 }
 
 sub get_volume
@@ -70,13 +73,16 @@ sub check_mute
 {
 	my ($self, $feature) = @_;
 
-	my @lines;
-	my $ex = PCRD::Util::try {
-		@lines = PCRD::Util::slurp_command($self->config->{command}, 'info');
-	};
-
-	return ['command', $ex || '(returned nothing)'] unless !$ex && @lines > 0;
-	return undef;
+	return $self->owner->broadcast($self->config->{command}, 'info')
+		->then(
+			sub {
+				return ['command', '(returned nothing)'] unless @_ > 0;
+				return undef;
+			},
+			sub {
+				return Future->done(['command', shift]);
+			}
+		);
 }
 
 sub get_mute
@@ -103,6 +109,18 @@ sub set_mute
 
 	return $self->owner->broadcast($self->config->{command}, 'set-sink-mute', '@DEFAULT_SINK@', $value)
 		->then(sub { 1 });
+}
+
+sub _build_features
+{
+	my ($self) = @_;
+
+	my $features = $self->SUPER::_build_features;
+
+	$features->{volume}{needs_agent} = !!1;
+	$features->{mute}{needs_agent} = !!1;
+
+	return $features;
 }
 
 1;
