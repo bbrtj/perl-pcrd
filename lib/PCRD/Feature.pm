@@ -171,24 +171,24 @@ sub check
 			$self->_set_functional(!!1);
 		}
 	}
+	elsif ($self->needs_agent) {
+		$self->_set_functional(!!0);
+	}
 }
 
 # init feature for operation (done after checking)
 sub init
 {
-	my ($self) = @_;
-	return if $self->vars->{_initialized};
+	my ($self, %args) = @_;
+	return unless $self->provides('i');
+	my $init_method = "init_$self->{name}";
 
-	if ($self->provides('i')) {
-		die 'cannot initialize when needs_agent is present!'
-			if $self->needs_agent;
-
-		my $init_method = "init_$self->{name}";
-
-		$self->owner->$init_method($self);
+	if (!$self->needs_agent xor $args{agent_present}) {
+		$self->owner->$init_method($self, 1);
 	}
-
-	$self->vars->{_initialized} = !!1;
+	elsif ($self->needs_agent) {
+		$self->owner->$init_method($self, 0);
+	}
 }
 
 sub add_execute_hook

@@ -108,7 +108,7 @@ sub register_user_agent
 		if defined $self->user_agent;
 
 	$self->set_user_agent($ua);
-	$self->owner->check_modules(agent_present => 1);
+	$self->owner->agent_present;
 }
 
 sub unregister_stream
@@ -116,8 +116,10 @@ sub unregister_stream
 	my ($self, $stream) = @_;
 
 	@{$self->streams} = grep { $_ != $stream } @{$self->streams};
-	$self->set_user_agent(undef)
-		if defined $self->user_agent && $stream == $self->user_agent;
+	if (defined $self->user_agent && $stream == $self->user_agent) {
+		$self->set_user_agent(undef);
+		$self->owner->agent_absent;
+	}
 
 	return;
 }

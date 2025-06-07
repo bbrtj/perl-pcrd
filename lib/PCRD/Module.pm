@@ -52,15 +52,6 @@ sub _load_config
 	return \%config;
 }
 
-sub init
-{
-	my ($self) = @_;
-
-	foreach my $feature (keys %{$self->features}) {
-		$self->features->{$feature}->init;
-	}
-}
-
 sub _load_features
 {
 	my ($self) = @_;
@@ -92,6 +83,16 @@ sub feature
 	my ($self, $name) = @_;
 
 	return $self->features->{$name} // die "No such feature: $name";
+}
+
+sub init
+{
+	my ($self, %args) = @_;
+
+	my $features = $self->features;
+	foreach my $feature_name (sort keys %$features) {
+		$features->{$feature_name}->init(%args);
+	}
 }
 
 sub check

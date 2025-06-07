@@ -186,6 +186,32 @@ sub check_modules
 	}
 }
 
+sub init_modules
+{
+	my ($self, %args) = @_;
+	my $modules = $self->modules;
+
+	foreach my $module (sort keys %$modules) {
+		$modules->{$module}->init(%args);
+	}
+}
+
+sub agent_present
+{
+	my ($self) = @_;
+
+	$self->check_modules(agent_present => 1);
+	$self->init_modules(agent_present => 1);
+}
+
+sub agent_absent
+{
+	my ($self) = @_;
+
+	$self->check_modules(agent_present => 0);
+	$self->init_modules(agent_present => 0);
+}
+
 sub module
 {
 	my ($self, $name) = @_;
@@ -197,14 +223,11 @@ sub start
 {
 	my ($self) = @_;
 
-	$self->check_modules;
-
 	die 'no modules specified, nothing to do'
 		unless keys %{$self->modules};
 
-	foreach my $module (keys %{$self->modules}) {
-		$self->modules->{$module}->init;
-	}
+	$self->check_modules;
+	$self->init_modules;
 
 	say 'starting the daemon...';
 	$self->listener;
@@ -227,7 +250,7 @@ PCRD - Parameters Control and Reporting Daemon
 	my $daemon = PCRD->new;
 	$daemon->start;
 	$loop->add($daemon->notifier);
-	$loop->start;
+	$loop->run;
 
 =head1 DESCRIPTION
 

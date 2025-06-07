@@ -22,7 +22,7 @@ sub run_user_agent
 	require PCRD::Client::UserAgent;
 	my $ua = PCRD::UserAgent->new;
 	$ua->start($loop);
-	$loop->start;
+	$loop->run;
 }
 
 sub run_daemon
@@ -43,7 +43,7 @@ sub run_daemon
 	my $daemon = PCRD->new;
 	$daemon->start;
 	$loop->add($daemon->notifier);
-	$loop->start;
+	$loop->run;
 }
 
 sub run_init
