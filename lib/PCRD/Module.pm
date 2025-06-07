@@ -106,9 +106,11 @@ sub check
 
 sub load_plugin
 {
-	my ($class, $plugin_file) = @_;
+	my ($class, $plugin_file, $module) = @_;
 
-	# expand ~ shortcut
+	# expand shortcuts
+	$plugin_file = ($ENV{PCRD_DIR} // '/etc/pcrd') . '/plugins/' . $module . '.pm'
+		if $plugin_file eq '1';
 	$plugin_file =~ s/^~/$ENV{HOME}/;
 
 	do $plugin_file
