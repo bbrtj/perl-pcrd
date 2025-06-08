@@ -264,20 +264,87 @@ PCRD - Parameters Control and Reporting Daemon
 This module is a daemon that collects and controls some OS details and can be
 interacted with through a unix socket.
 
-See L<pcrctl> for command line options. Quickstart:
+=head2 Interface
+
+See L<pcrd> and L<pcrctl> for command line options. Quickstart:
 
 =over
 
-=item *
+=item
 
-C<pcrctl init> will create an initial configuration file with all default
+C<pcrd> runs the daemon. This should be done as root.
+
+It puts output under C</var/log/pcrd.log> by default, which can be changed with
+C<--logs> argument.
+
+=item
+
+C<pcrd user-agent> runs the user agent, which executes commands on behalf of
+the user. This should be run as the user who runs the graphical environment.
+
+User agent generates no output (other than errors when stuff go wrong), so no
+log file is created for it. C<--logs> argument does nothing for it.
+
+=item
+
+C<pcrd init> will create an initial configuration file with all default
 modules turned on.
 
-=item *
+=item
 
 C<pcrctl config> will list all configuration values.
 
 =back
+
+=head2 Configuration
+
+Config files reside in a directory configured via C<PCRD_DIR> environmental
+variable (C</etc/pcrd> by default). C<pcrd.conf> file with config vars should
+be present.
+
+Configuration file should explicitly enable all modules which will be used by
+PCRD.  Once a module is enabled, all of its features will be enabled
+automatically. To prevent that, C<all_features> can be specified as C<0> is the
+module's config, and all wanted features must be enabled explicitly:
+
+	# do not automatically enable all features
+	Module.enabled=1
+	Module.all_features=0
+	Module.feature.enabled=1
+
+=head2 Plugins
+
+Plugins can be put into C<plugins> directory under C<PCRD_DIR>. If they are,
+they can be enabled with the following config:
+
+	PluginModule.enabled=1
+	PluginModule.plugin=1
+
+C<plugins/PluginModule.pm> will be loaded and it should contain module package.
+
+If plugins are outside of that directory, a full path to plugin file must be
+specified. If additional modules are in C<@INC> then it is not requried to
+specify C<Module.plugin>.
+
+Each plugin is a single PCRD module. It must be under namespace
+C<PCRD::Module::KERNEL::PluginModule> or C<PCRD::Module::Any::PluginModule>.
+Core PCRD modules can serve as examples for any plugin modules.
+
+=head2 Interacting with the daemon
+
+To interact with the daemon, C<pcrctl> program can be used:
+
+	# get value
+	pcrctl Module feature
+
+	# set value
+	pcrctl Module feature "value"
+
+It is recommended to configure pcrd to use C<wheel> as group for its socket, so
+that it will not be open to any user, but will be possible to talk to it
+without elevated permissions:
+
+	socket.group=wheel
 
 =head1 AUTHOR
 

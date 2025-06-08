@@ -7,10 +7,12 @@ A Perl module to control local desktop environment. It is supposed to be used
 together with WMs that do not provide DE-like features like brightness control
 (like dwm).
 
+This module is mostly for self-use. Let me know if you are interested in using
+it yourself.
+
 ## Code and documentation
-Code on GitHub. Limited documentation as a man page - see `man PCRD` and `man
-pcrctl`. This module is mostly for self-use. Let me know if you are interested
-in using it yourself.
+Code on GitHub. Documentation as a man page - see `man PCRD`, `man pcrd` and
+`man pcrctl`.
 
 ## TODO
 
