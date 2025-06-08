@@ -3,7 +3,7 @@ package PCRD::Module::Linux::Device;
 use v5.14;
 use warnings;
 
-use parent 'PCRD::Module::Device';
+use parent 'PCRD::Module::Any::Device';
 
 ## LID
 

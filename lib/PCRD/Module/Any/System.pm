@@ -1,4 +1,4 @@
-package PCRD::Module::System;
+package PCRD::Module::Any::System;
 
 use v5.14;
 use warnings;

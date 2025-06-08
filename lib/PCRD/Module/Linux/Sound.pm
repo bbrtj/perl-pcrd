@@ -6,7 +6,7 @@ use warnings;
 use Future;
 use List::Util qw(sum);
 
-use parent 'PCRD::Module::Sound';
+use parent 'PCRD::Module::Any::Sound';
 
 sub _load_config
 {

@@ -7,7 +7,7 @@ use Future;
 use List::Util qw(sum);
 use IO::Async::Timer::Periodic;
 
-use parent 'PCRD::Module::Performance';
+use parent 'PCRD::Module::Any::Performance';
 
 ### MEMORY
 

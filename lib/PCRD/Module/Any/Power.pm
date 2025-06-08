@@ -1,4 +1,4 @@
-package PCRD::Module::Power;
+package PCRD::Module::Any::Power;
 
 use v5.14;
 use warnings;

@@ -5,7 +5,7 @@ use warnings;
 
 use List::Util qw(max min);
 
-use parent 'PCRD::Module::Display';
+use parent 'PCRD::Module::Any::Display';
 
 ## BRIGHTNESS
 

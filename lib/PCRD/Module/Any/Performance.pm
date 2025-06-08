@@ -1,4 +1,4 @@
-package PCRD::Module::Performance;
+package PCRD::Module::Any::Performance;
 
 use v5.14;
 use warnings;

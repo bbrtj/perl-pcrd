@@ -1,4 +1,4 @@
-package PCRD::Module::Sound;
+package PCRD::Module::Any::Sound;
 
 use v5.14;
 use warnings;

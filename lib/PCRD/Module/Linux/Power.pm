@@ -6,7 +6,7 @@ use List::Util qw(sum min max);
 use Scalar::Util qw(looks_like_number);
 use IO::Async::Timer::Periodic;
 
-use parent 'PCRD::Module::Power';
+use parent 'PCRD::Module::Any::Power';
 
 ### CAPACITY
 

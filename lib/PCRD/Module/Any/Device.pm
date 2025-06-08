@@ -1,4 +1,4 @@
-package PCRD::Module::Device;
+package PCRD::Module::Any::Device;
 
 use v5.14;
 use warnings;

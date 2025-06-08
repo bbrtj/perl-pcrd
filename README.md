@@ -23,10 +23,6 @@ it yourself.
 Code on GitHub. Documentation as a man page - see `man PCRD`, `man pcrd` and
 `man pcrctl`.
 
-## TODO
-
-- extra monitors through xrandr
-
 ## Bugs and feature requests
 Please use the Github's issue tracker to file both bugs and feature requests.
 

@@ -5,7 +5,7 @@ use warnings;
 
 use Time::Piece;
 
-use parent 'PCRD::Module::System';
+use parent 'PCRD::Module::Any::System';
 
 sub prepare_uptime
 {
