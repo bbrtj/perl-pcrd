@@ -43,6 +43,11 @@ has 'socket_config' => (
 	default => sub {
 		my $hash = shift->config_obj->get_value('socket', {});
 		$hash->{file} //= '/var/run/pcrd.sock';
+		$hash->{pidfile} //= do {
+			my $default_pidfile = $hash->{file};
+			$default_pidfile =~ s/(\.sock)?$/.pid/;
+			$default_pidfile;
+		};
 		$hash->{user} //= $EUID;
 		$hash->{group} //= $EGID;
 		$hash->{perm} //= '0660';
@@ -126,9 +131,10 @@ sub _build_socket
 	my ($self) = @_;
 
 	my $socket_conf = $self->socket_config;
-	my $lockfile = $socket_conf->{file} . '.lock';
+	my $lockfile = $socket_conf->{pidfile};
 	open my $lock_fh, '>>', $lockfile;
 	flock $lock_fh, LOCK_EX | LOCK_NB or die 'Could not obtain lock - server is running?';
+	print {$lock_fh} $PROCESS_ID;
 	$socket_conf->{lock} = $lock_fh;
 
 	unlink $socket_conf->{file}
