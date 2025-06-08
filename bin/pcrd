@@ -35,7 +35,7 @@ sub run_daemon
 
 	require POSIX;
 	POSIX::setsid() != -1 or die "Can't start a new session: $!";
-	$0 = 'pcrd';
+	rename $logs, "$logs.old";
 	open STDOUT, '>', $logs;
 	open STDERR, '>&', STDOUT;
 	chdir '/';
