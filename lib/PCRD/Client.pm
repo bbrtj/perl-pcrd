@@ -5,6 +5,7 @@ use warnings;
 
 use IO::Socket::UNIX;
 use IO::Async::Stream;
+use Encode qw(encode);
 
 use PCRD::Mite;
 use PCRD::Protocol;
@@ -74,7 +75,7 @@ sub send
 {
 	my ($self, @parts) = @_;
 
-	$self->stream->write(PCRD::Protocol::message(grep { defined } @parts));
+	$self->stream->write(PCRD::Protocol::message(map { encode 'UTF-8', $_ } grep { defined } @parts));
 }
 
 sub start
