@@ -22,6 +22,7 @@ my $pcrd = PCRDTest->new(
 			command => 't/mock/bin/pactl',
 			volume => {
 				enabled => 1,
+				step => 5,
 			},
 		},
 	},

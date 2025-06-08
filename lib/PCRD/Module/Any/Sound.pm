@@ -24,7 +24,7 @@ sub _build_features
 			config => {
 				step => {
 					desc => 'volume will be increased / decreased by this value',
-					value => 5,
+					value => 8,
 				},
 			},
 		},

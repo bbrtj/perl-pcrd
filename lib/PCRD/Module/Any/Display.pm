@@ -153,7 +153,7 @@ sub _build_features
 			config => {
 				step => {
 					desc => 'brightness will be increased / decreased by this value',
-					value => 10,
+					value => 8,
 				},
 			},
 		},

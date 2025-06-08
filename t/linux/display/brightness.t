@@ -24,6 +24,7 @@ my $pcrd = PCRDTest->new(
 				enabled => 1,
 				now_pattern => PCRDFiles->prepare('current', $current),
 				max_pattern => PCRDFiles->prepare('max', $max),
+				step => 10,
 			},
 		},
 	},
