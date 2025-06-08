@@ -107,7 +107,6 @@ sub _handle_handshake
 			$self->owner->register_user_agent($self);
 		}
 		elsif ($handshake eq 'query') {
-			say 'new query client';
 			$self->_set_client_type(TYPE_QUERY);
 		}
 		else {
