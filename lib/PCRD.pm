@@ -131,11 +131,11 @@ sub _build_socket
 	my ($self) = @_;
 
 	my $socket_conf = $self->socket_config;
-	my $lockfile = $socket_conf->{pidfile};
+	my $pidfile = $socket_conf->{pidfile};
+	my $lockfile = $pidfile . ".lock";
 	open my $lock_fh, '>>', $lockfile;
 	flock $lock_fh, LOCK_EX | LOCK_NB or die 'Could not obtain lock - server is running?';
-	truncate $lock_fh, 0;
-	print {$lock_fh} $PROCESS_ID;
+	PCRD::Util::spew($pidfile, $PROCESS_ID);
 	$socket_conf->{lock} = $lock_fh;
 
 	unlink $socket_conf->{file}
