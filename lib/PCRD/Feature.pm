@@ -152,7 +152,7 @@ sub check
 		my $check_method = $self->owner->can("check_$self->{name}");
 
 		if ($check_method) {
-			Future->wrap($self->owner->$check_method($self))
+			my $f = Future->wrap($self->owner->$check_method($self))
 				->retain
 				->on_done(
 					sub {
@@ -166,6 +166,8 @@ sub check
 						$self->_set_functional(!defined $res);
 					},
 				);
+
+			$self->owner->notifier->adopt_future($f);
 		}
 		else {
 			$self->_set_functional(!!1);
@@ -186,7 +188,7 @@ sub init
 	if (!$self->needs_agent xor $args{agent_present}) {
 		$self->owner->$init_method($self, 1);
 	}
-	elsif ($self->needs_agent) {
+	elsif ($self->needs_agent && defined $args{agent_present}) {
 		$self->owner->$init_method($self, 0);
 	}
 }
@@ -209,25 +211,29 @@ sub execute
 		'w' => 'set',
 	};
 
-	die "cannot execute action $action for " . $self->name
-		unless $prefixes->{$action};
-
-	die 'feature ' . $self->name . ' is not functional'
-		unless $self->functional;
-
-	my $method = "$prefixes->{$action}_" . $self->name;
-	my $result = $self->owner->$method($self, $arg);
-
-	return scalar Future->wrap($result)->then(
+	my $f = Future->call(
 		sub {
-			my ($result) = @_;
-			foreach my $hook (@{$self->execute_hooks}) {
-				$hook->($action, $arg, $result);
-			}
+			die "cannot execute action $action for " . $self->name
+				unless $prefixes->{$action};
 
-			return $result;
+			die 'feature ' . $self->name . ' is not functional'
+				unless $self->functional;
+
+			my $method = "$prefixes->{$action}_" . $self->name;
+			return Future->wrap($self->owner->$method($self, $arg))->then(
+				sub {
+					my ($result) = @_;
+					foreach my $hook (@{$self->execute_hooks}) {
+						$hook->($action, $arg, $result);
+					}
+
+					return $result;
+				}
+			);
 		}
 	);
+
+	return $self->owner->notifier->adopt_future($f);
 }
 
 sub provides

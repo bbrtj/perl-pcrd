@@ -5,6 +5,20 @@ use warnings;
 
 use parent 'IO::Async::Notifier';
 
+sub new
+{
+	my ($class, %args) = @_;
+	$args{on_error} = sub {
+		my (undef, $message, $name, @details) = @_;
+
+		$name = $name ? "[$name] " : '';
+		say "ERROR: $name$message";
+		say join "\n", @details if @details;
+	};
+
+	return $class->SUPER::new(%args);
+}
+
 sub on_loop
 {
 	my ($self, $callback, $unloop_callback) = @_;

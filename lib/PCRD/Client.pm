@@ -50,6 +50,7 @@ sub _build_stream
 	return IO::Async::Stream->new(
 		handle => $socket,
 		on_read => $self->_message_handler,
+		on_closed => sub { die 'daemon disconnected' },
 	);
 }
 

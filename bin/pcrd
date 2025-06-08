@@ -20,7 +20,7 @@ my $loop = IO::Async::Loop->new;
 sub run_user_agent
 {
 	require PCRD::Client::UserAgent;
-	my $ua = PCRD::UserAgent->new;
+	my $ua = PCRD::Client::UserAgent->new;
 	$ua->start($loop);
 	$loop->run;
 }

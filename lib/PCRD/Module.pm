@@ -15,6 +15,9 @@ use constant name => undef;
 
 has '+owner' => (
 	required => 1,
+	handles => {
+		'notifier' => 'notifier',
+	},
 );
 
 has 'config' => (

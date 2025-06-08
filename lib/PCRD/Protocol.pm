@@ -30,15 +30,13 @@ sub extract_handshake_message
 	my ($buffref) = @_;
 
 	my $eot = TERMINATOR;
-	if ($$buffref =~ s/^(.*)$eot//) {
+	my $hs = quotemeta HANDSHAKE;
+	if ($$buffref =~ s/^$hs(.*)$eot//) {
 		my $ps = quotemeta SEPARATOR;
-		my $hs = quotemeta HANDSHAKE;
 
 		my @parts = split /$ps/, $1;
 
 		return undef unless @parts == 1;
-		return undef unless $parts[0] =~ s{^$hs}{};
-
 		return $parts[0];
 	}
 

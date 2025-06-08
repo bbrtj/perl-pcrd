@@ -37,7 +37,7 @@ sub run_query
 
 my $action = shift;
 
-elsif ($action eq 'config') {
+if ($action eq 'config') {
 	require PCRD;
 	say PCRD->new->explain_config;
 }

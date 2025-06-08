@@ -82,13 +82,17 @@ sub handle_message
 
 	my $type = $self->_client_type;
 	if ($type == TYPE_NONE) {
-		return $self->_handle_handshake($buffref);
+		$self->_handle_handshake($buffref);
+
+		# other types may happen after the handshake, but within the same message
+		$self->handle_message($stream, $buffref, $eof)
+			if $$buffref;
 	}
 	elsif ($type == TYPE_QUERY) {
-		return $self->_handle_query($buffref);
+		$self->_handle_query($buffref);
 	}
 	elsif ($type == TYPE_USER_AGENT) {
-		return $self->_handle_user_agent($buffref);
+		$self->_handle_user_agent($buffref);
 	}
 }
 
@@ -142,8 +146,7 @@ sub _handle_query
 			next;
 		}
 
-		Future->call($feature->can('execute'), $feature, $action, $value)
-			->retain
+		$feature->execute($action, $value)
 			->on_done(
 				sub {
 					$write->(!!1, @_);
