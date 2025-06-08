@@ -1,0 +1,96 @@
+#!/usr/bin/env perl
+
+use strict;
+use autodie;
+use feature 'say';
+
+my $state = 't/mock/bin/xrandr-state';
+my $base;
+my $extended;
+read_state();
+
+sub write_state
+{
+	open my $fh, '>', $state;
+	print {$fh} join "\n", $base, $extended;
+}
+
+sub reset_state
+{
+	$base = 1;
+	$extended = 0;
+	write_state;
+}
+
+sub read_state
+{
+	if (!-e $state) {
+		reset_state;
+	}
+	else {
+		open my $fh, '<', $state;
+		($base, $extended) = readline $fh;
+		chomp $base, $extended;
+	}
+}
+
+my $base_name = 'eDP-1';
+my $extended_name = 'HDMI-1';
+
+sub write_output
+{
+	say 'Doing my best to mock xrandr';
+	say $base_name . ' connected primary';
+	say '  1920x1080 ' . ($base ? '*' : '');
+	say '  800x600';
+
+	say $extended_name . ' connected';
+	say '  1920x1080 ' . ($extended ? '*' : '');
+	say '  800x600';
+
+	say 'SomethingElse-1 disconnected';
+}
+
+if (@ARGV == 0) {
+	write_output;
+}
+if ($ARGV[0] eq '-v') {
+	reset_state;
+	print 'ready to mock';
+}
+else {
+	my $context;
+	for (my $i = 0; $i < @ARGV; ++$i) {
+		if ($ARGV[$i] eq '--output') {
+			$context = $ARGV[++$i];
+		}
+		elsif ($ARGV[$i] eq '--auto') {
+			die 'no context' unless $context;
+			if ($context eq $base_name) {
+				$base = 1;
+			}
+			elsif ($context eq $extended_name) {
+				$extended = 1;
+			}
+			else {
+				die 'bad name';
+			}
+		}
+		elsif ($ARGV[$i] eq '--off') {
+			die 'no context' unless $context;
+			if ($context eq $base_name) {
+				$base = 0;
+			}
+			elsif ($context eq $extended_name) {
+				$extended = 0;
+			}
+			else {
+				die 'bad name';
+			}
+		}
+	}
+
+	write_state;
+	write_output;
+}
+

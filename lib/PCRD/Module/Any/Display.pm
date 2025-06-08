@@ -17,7 +17,7 @@ sub check_xrandr
 {
 	my ($self, $feature) = @_;
 
-	return $self->owner->broadcast($feature->config->{command})
+	return $self->owner->broadcast($feature->config->{command}, '-v')
 		->then(
 			sub {
 				return ['command', '(returned nothing)'] unless @_ > 0;
@@ -100,7 +100,7 @@ sub set_xrandr
 			if PCRD::Util::any { $side eq $_ } qw(left right);
 	}
 
-	my %command;
+	my %command = (base => [], external => []);
 	foreach my $flag (split //, $mode) {
 		if ($flag eq 'I') {
 			die 'side is required for I' unless $side;
