@@ -4,6 +4,9 @@ use IO::Async::Timer::Periodic;
 use lib 't/lib';
 use PCRDTest;
 
+plan skip_all 'This test requires Linux'
+	unless lc $^O eq 'linux';
+
 ################################################################################
 # This tests whether the Performance module's cpu_scaling works
 ################################################################################

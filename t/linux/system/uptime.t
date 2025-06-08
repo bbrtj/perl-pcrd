@@ -5,6 +5,9 @@ use lib 't/lib';
 use PCRDTest;
 use PCRDFiles;
 
+plan skip_all 'This test requires Linux'
+	unless lc $^O eq 'linux';
+
 ################################################################################
 # This tests whether the System module's uptime works
 ################################################################################
