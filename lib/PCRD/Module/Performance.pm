@@ -50,10 +50,10 @@ sub _build_features
 			mode => 'rw',
 		},
 		cpu_auto_scaling => {
-			desc => 'Automatically set cpu scaling based on charging status',
+			desc => 'Automatically set cpu scaling based on ac status',
 			mode => 'i',
 			info =>
-				'CPU scaling can be automatically adjusted based on whether the charger is plugged in. Requires charging feature from Power module and cpu_scaling feature from this module.',
+				'CPU scaling can be automatically adjusted based on whether the ac is present. Requires ac feature from Power module and cpu_scaling feature from this module.',
 			config => {
 				ac => {
 					desc => 'scaling governor on AC',
@@ -65,7 +65,7 @@ sub _build_features
 				},
 			},
 			dependencies => [
-				'Power.charging',
+				'Power.ac',
 				'Performance.cpu_scaling',
 			],
 		},

@@ -226,20 +226,20 @@ sub init_cpu_auto_scaling
 	my ($self, $feature) = @_;
 
 	my $scaling = $feature->dependencies->{'Performance.cpu_scaling'};
-	my $charging = $feature->dependencies->{'Power.charging'};
+	my $ac = $feature->dependencies->{'Power.ac'};
 
 	my $timer = IO::Async::Timer::Periodic->new(
 		interval => $self->owner->probe_interval,
 		reschedule => 'skip',
 		on_tick => sub {
 			my $current = $scaling->execute('r');
-			my $is_charging = $charging->execute('r');
+			my $is_ac = $ac->execute('r');
 
-			Future->wait_all($current, $is_charging)->on_ready(
+			Future->wait_all($current, $is_ac)->on_ready(
 				sub {
 					my $wanted;
 
-					if ($is_charging->get) {
+					if ($is_ac->get) {
 						$wanted = $feature->config->{ac};
 					}
 					else {

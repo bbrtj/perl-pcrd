@@ -10,8 +10,7 @@ use PCRDFiles;
 # This tests whether the Performance module's cpu_auto_scaling works
 ################################################################################
 
-my $charging = !!1;
-sub get_charging { qw(Discharging Charging) [$charging] }
+my $ac = 1;
 my $scaling = 0;
 sub get_scaling { qw(on_ac on_battery) [$scaling % 2] }
 
@@ -21,9 +20,9 @@ my $pcrd = PCRDTest->new(
 		Power => {
 			enabled => 1,
 			all_features => 0,
-			charging => {
+			ac => {
 				enabled => 1,
-				pattern => PCRDFiles->prepare('charging', get_charging),
+				pattern => PCRDFiles->prepare('ac', $ac),
 			},
 		},
 		Performance => {
@@ -46,9 +45,9 @@ $pcrd->add_test_timer(
 	IO::Async::Timer::Countdown->new(
 		delay => 0.07,
 		on_expire => sub {
-			$charging = !$charging;
+			$ac = ($ac + 1) % 2;
 			$scaling++;
-			PCRDFiles->update('charging', get_charging);
+			PCRDFiles->update('ac', $ac);
 		},
 	)->start
 );

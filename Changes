@@ -5,6 +5,7 @@ Revision history for PCRD
 	- Allow multiple hooks
 	- Add mute feature to Sound module
 	- Add suspend feature to Power module
+	- Add ac feature to Power module
 	- Add new Device module
 	- PCRD now requires an "user agent" which executes some commands on behalf of the user
 

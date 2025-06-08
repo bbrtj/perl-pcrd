@@ -41,6 +41,38 @@ sub get_capacity
 	return $capacity_sum / $capacity_count;
 }
 
+### AC
+
+sub prepare_ac
+{
+	my ($self, $feature) = @_;
+
+	$feature->vars->{files} = [glob $feature->config->{pattern}];
+}
+
+sub check_ac
+{
+	my ($self, $feature) = @_;
+
+	return ['found', 'pattern'] unless @{$feature->vars->{files}} > 0;
+	return ['readable', 'pattern'] unless PCRD::Util::all { -r } @{$feature->vars->{files}};
+	return undef;
+}
+
+sub get_ac
+{
+	my ($self, $feature) = @_;
+
+	my $any_ac = !!0;
+	foreach my $file (@{$feature->vars->{files}}) {
+		my $status = PCRD::Util::slurp_1($file);
+		$any_ac = $status eq '1';
+		last if $any_ac;
+	}
+
+	return $any_ac;
+}
+
 ### CHARGING
 
 sub prepare_charging
@@ -220,6 +252,15 @@ sub _build_features
 		pattern => {
 			desc => 'glob file pattern',
 			value => '/sys/class/power_supply/BAT*/capacity',
+		},
+	};
+
+	$features->{ac}{info} = 'AC status is usually found in a file located under /sys directory';
+	$features->{ac}{config} = {
+		%{$features->{ac}{config} // {}},
+		pattern => {
+			desc => 'glob file pattern',
+			value => '/sys/class/power_supply/AC*/online',
 		},
 	};
 

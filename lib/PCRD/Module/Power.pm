@@ -10,6 +10,9 @@ use constant name => 'Power';
 sub check_capacity { ... }
 sub get_capacity { ... }
 
+sub check_ac { ... }
+sub get_ac { ... }
+
 sub check_charging { ... }
 sub get_charging { ... }
 
@@ -29,6 +32,10 @@ sub _build_features
 	return {
 		capacity => {
 			desc => 'Current battery percent capacity',
+			mode => 'r',
+		},
+		ac => {
+			desc => 'Current alternating current status',
 			mode => 'r',
 		},
 		charging => {
