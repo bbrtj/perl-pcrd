@@ -1,13 +1,19 @@
 Revision history for PCRD
 
 {{$NEXT}}
+
+1.000 - 2025-06-08
+	- PCRD is now meant to be run as root
+	- PCRD now requires an "user agent" which executes some commands on behalf of the user
 	- Project is now based on Mite
 	- Allow multiple hooks
 	- Add mute feature to Sound module
 	- Add suspend feature to Power module
 	- Add ac feature to Power module
+	- Add xrandr feature to Display module
 	- Add new Device module
-	- PCRD now requires an "user agent" which executes some commands on behalf of the user
+	- Better dependencies handling
+	- Improved documentation
 
 0.003 - 2025-05-19
 	- Execute hook now gets passed the return value of the function
