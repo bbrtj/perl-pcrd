@@ -1,6 +1,7 @@
 Revision history for PCRD
 
 {{$NEXT}}
+	- fix display brightness becoming stuck on low values
 
 1.000 - 2025-06-08
 	- PCRD is now meant to be run as root

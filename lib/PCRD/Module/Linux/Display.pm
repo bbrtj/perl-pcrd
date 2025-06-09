@@ -58,7 +58,10 @@ sub set_brightness
 	}
 	else {
 		my $new_log_scale_curr = log($curr) + $direction * ($feature->config->{step} / 100) * log($max);
-		$new_curr = max 0, min $max, int(exp($new_log_scale_curr));
+		$new_curr = int(exp($new_log_scale_curr));
+		$new_curr += $direction
+			if $new_curr == $curr;
+		$new_curr = max 0, min $max, $new_curr;
 	}
 
 	PCRD::Util::spew($feature->vars->{now_files}[0], $new_curr);
