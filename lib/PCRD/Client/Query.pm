@@ -36,7 +36,7 @@ sub send
 after 'start' => sub {
 	my ($self) = @_;
 
-	$self->SUPER::send('+query');
+	$self->SUPER::send(PCRD::Protocol::handshake('query'));
 };
 
 1;

@@ -43,7 +43,7 @@ sub _build_on_message
 after 'start' => sub {
 	my ($self) = @_;
 
-	$self->send('+user_agent');
+	$self->send(PCRD::Protocol::handshake('user_agent'));
 };
 
 1;
