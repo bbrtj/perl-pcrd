@@ -1,5 +1,4 @@
 use Test2::V0;
-use IO::Async::Timer::Periodic;
 
 use lib 't/lib';
 use PCRDTest;
@@ -17,16 +16,11 @@ my $pcrd = PCRDTest->new(
 	}
 );
 
-$pcrd->add_test_timer(
-	IO::Async::Timer::Periodic->new(
-		interval => 0.04,
-		on_tick => sub {
-			$pcrd->test_message(['TestPlugin', 'something'], 'plugin works');
-		},
-	)->start
+my @cases = (
+	[['TestPlugin', 'something'], 'plugin works'],
 );
 
-$pcrd->start(0.1);
+$pcrd->start_cases(\@cases);
 $pcrd->run_tests;
 
 done_testing;

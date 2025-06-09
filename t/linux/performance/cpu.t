@@ -44,7 +44,7 @@ $pcrd->add_test_timer(
 		on_tick => sub {
 			PCRDFiles->update('stat', get_stat);
 		},
-	)->start
+	)
 );
 
 $pcrd->add_test_timer(
@@ -53,7 +53,7 @@ $pcrd->add_test_timer(
 		on_tick => sub {
 			$pcrd->test_message(['Performance', 'cpu'], 0.333333);
 		},
-	)->start
+	)
 );
 
 $pcrd->start(0.1);

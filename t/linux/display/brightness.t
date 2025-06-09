@@ -1,5 +1,4 @@
 use Test2::V0;
-use IO::Async::Timer::Periodic;
 
 use lib 't/lib';
 use PCRDTest;
@@ -30,19 +29,14 @@ my $pcrd = PCRDTest->new(
 	},
 );
 
-$pcrd->add_test_timer(
-	IO::Async::Timer::Periodic->new(
-		interval => 0.04,
-		on_tick => sub {
-			$pcrd->test_message(['Display', 'brightness'], int(log($current) / log($max) * 100) / 100);
-			$pcrd->test_message(['Display', 'brightness', 1], 1);
-			$pcrd->test_message(['Display', 'brightness'], int(log($current) / log($max) * 100 + 10) / 100);
-			$pcrd->test_message(['Display', 'brightness', -1], 1);
-		},
-	)->start
+my @cases = (
+	[['Display', 'brightness'], int(log($current) / log($max) * 100) / 100],
+	[['Display', 'brightness', 1], 1],
+	[['Display', 'brightness'], int(log($current) / log($max) * 100 + 10) / 100],
+	[['Display', 'brightness', -1], 1],
 );
 
-$pcrd->start(0.1);
+$pcrd->start_cases(\@cases);
 $pcrd->run_tests;
 
 done_testing;

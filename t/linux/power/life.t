@@ -24,6 +24,7 @@ my $pcrd = PCRDTest->new(
 			life => {
 				enabled => 1,
 				pattern => PCRDFiles->prepare('energy', $energy),
+				measurement_window => 1 / 60 * 0.06,
 			},
 		},
 	},
@@ -40,7 +41,7 @@ $pcrd->add_test_timer(
 				$pcrd->test_message(['Power', 'life'], sub { $_ >= 20 && $_ <= 21 });
 			}
 		},
-	)->start
+	)
 );
 
 $pcrd->start(0.1);

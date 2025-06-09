@@ -36,7 +36,7 @@ $pcrd->add_test_timer(
 			PCRDFiles->update('lid', get_lid);
 			$pcrd->test_message(['Device', 'lid'], $lid);
 		},
-	)->start
+	)
 );
 
 $pcrd->start(0.1);

@@ -1,5 +1,4 @@
 use Test2::V0;
-use IO::Async::Timer::Periodic;
 
 use lib 't/lib';
 use PCRDTest;
@@ -29,16 +28,11 @@ $pcrd->daemon->module('System')->feature('time')->add_execute_hook(
 	}
 );
 
-$pcrd->add_test_timer(
-	IO::Async::Timer::Periodic->new(
-		interval => 0.04,
-		on_tick => sub {
-			$pcrd->test_message(['System', 'time'], 'CONST');
-		},
-	)->start
+my @cases = (
+	[['System', 'time'], 'CONST'],
 );
 
-$pcrd->start(0.1);
+$pcrd->start_cases(\@cases);
 $pcrd->run_tests;
 
 is $hook_ran, ['r', undef, 'CONST'], 'hook was executed ok';

@@ -52,7 +52,7 @@ $pcrd->add_test_timer(
 			$scaling++;
 			PCRDFiles->update('ac', $ac);
 		},
-	)->start
+	)
 );
 
 $pcrd->add_test_timer(
@@ -61,7 +61,7 @@ $pcrd->add_test_timer(
 		on_tick => sub {
 			$pcrd->test_message(['Performance', 'cpu_scaling'], get_scaling);
 		},
-	)->start
+	)
 );
 
 $pcrd->start(0.1);

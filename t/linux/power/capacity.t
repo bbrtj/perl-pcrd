@@ -35,7 +35,7 @@ $pcrd->add_test_timer(
 			PCRDFiles->update('capacity', $capacity);
 			$pcrd->test_message(['Power', 'capacity'], $capacity);
 		},
-	)->start
+	)
 );
 
 $pcrd->start(0.1);

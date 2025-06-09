@@ -35,7 +35,7 @@ $pcrd->add_test_timer(
 			PCRDFiles->update('ac', $ac);
 			$pcrd->test_message(['Power', 'ac'], !!$ac);
 		},
-	)->start
+	)
 );
 
 $pcrd->start(0.1);

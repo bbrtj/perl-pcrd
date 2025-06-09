@@ -36,7 +36,7 @@ $pcrd->add_test_timer(
 			PCRDFiles->update('charging', get_charging);
 			$pcrd->test_message(['Power', 'charging'], $charging);
 		},
-	)->start
+	)
 );
 
 $pcrd->start(0.1);

@@ -32,7 +32,7 @@ $pcrd->add_test_timer(
 			$pcrd->test_message(['System', 'date'], 'd' . time);
 			$pcrd->test_message(['System', 'time'], 't' . time);
 		},
-	)->start
+	)
 );
 
 $pcrd->start(0.1);

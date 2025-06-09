@@ -30,7 +30,7 @@ $pcrd->add_test_timer(
 		on_tick => sub {
 			$pcrd->test_message(['Performance', 'memory'], 0.183607);
 		},
-	)->start
+	)
 );
 
 $pcrd->start(0.1);

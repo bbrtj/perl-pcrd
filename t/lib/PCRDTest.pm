@@ -11,6 +11,7 @@ use Test2::Tools::Compare;
 use IO::Socket::UNIX;
 use IO::Async::Loop;
 use IO::Async::Timer::Countdown;
+use IO::Async::Timer::Periodic;
 use PCRD;
 use PCRD::Client::Query;
 use PCRD::Client::UserAgent;
@@ -169,11 +170,44 @@ sub add_test_timer
 	$self->loop->add($timer);
 }
 
+sub start_cases
+{
+	my ($self, $cases, $case_time, $finalization_timeout) = @_;
+	$case_time //= 0.02;
+
+	my $timeout = (@$cases + 2) * $case_time;
+	$self->add_test_timer(
+		IO::Async::Timer::Periodic->new(
+			interval => $case_time,
+			on_tick => sub {
+				$self->test_message(@{shift @$cases})
+					if @$cases;
+			},
+		)
+	);
+
+	$self->start($timeout, $finalization_timeout);
+}
+
 sub start
 {
 	my ($self, $timeout, $finalization_timeout) = @_;
 	$timeout //= 0.5;
 	$finalization_timeout //= 0.05;
+
+	if (@{$self->timers}) {
+		$timeout += 0.05;
+		$self->loop->add(
+			IO::Async::Timer::Countdown->new(
+				delay => 0.05,
+				on_expire => sub {
+					foreach my $timer (@{$self->timers}) {
+						$timer->start;
+					}
+				},
+			)->start
+		);
+	}
 
 	# test timers will be removed after $timeout, then the loop will be given
 	# additional 0.05 sec to respond to all signals

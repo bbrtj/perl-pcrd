@@ -41,7 +41,7 @@ $pcrd->add_test_timer(
 
 			$pcrd->test_message(['System', 'uptime'], "${d}d ${h}h ${m}m");
 		},
-	)->start
+	)
 );
 
 $pcrd->start(0.1);

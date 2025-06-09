@@ -32,7 +32,7 @@ $pcrd->add_test_timer(
 		on_tick => sub {
 			$pcrd->test_message(['Power', 'suspend', 1], 1);
 		},
-	)->start
+	)
 );
 
 $pcrd->start(0.1);
