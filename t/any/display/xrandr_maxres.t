@@ -15,6 +15,7 @@ my $pcrd = PCRDTest->new(
 			xrandr => {
 				enabled => 1,
 				command => 't/mock/bin/xrandr',
+				max_resolution => '800x600',
 			},
 		},
 	},
@@ -23,7 +24,7 @@ my $pcrd = PCRDTest->new(
 sub get_string
 {
 	my ($edp, $hdmi, $zz) = map { $_ ? ' (active)' : '' } @_;
-	return "HDMI-1$hdmi: 1920x1080, ZZ-1$zz: 3840x2160, eDP-1$edp: 1920x1080";
+	return "HDMI-1$hdmi: 800x600, ZZ-1$zz: 800x600, eDP-1$edp: 800x600";
 }
 
 my @cases = (

@@ -3,6 +3,7 @@ Revision history for PCRD
 {{$NEXT}}
 	- Fix display brightness becoming stuck on low values
 	- Fix unicode handling in network communication
+	- Improve xrandr feature
 
 1.000 - 2025-06-08
 	- PCRD is now meant to be run as root

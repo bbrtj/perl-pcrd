@@ -7,18 +7,20 @@ use feature 'say';
 my $state = 't/mock/bin/xrandr-state';
 my $base;
 my $extended;
+my $extra;
 read_state();
 
 sub write_state
 {
 	open my $fh, '>', $state;
-	print {$fh} join "\n", $base, $extended;
+	print {$fh} join "\n", $base, $extended, $extra;
 }
 
 sub reset_state
 {
 	$base = 1;
 	$extended = 0;
+	$extra = 1;
 	write_state;
 }
 
@@ -29,32 +31,35 @@ sub read_state
 	}
 	else {
 		open my $fh, '<', $state;
-		($base, $extended) = readline $fh;
-		chomp $base, $extended;
+		($base, $extended, $extra) = readline $fh;
+		chomp($base, $extended, $extra);
 	}
 }
 
 my $base_name = 'eDP-1';
 my $extended_name = 'HDMI-1';
+my $extra_name = 'ZZ-1';
 
 sub write_output
 {
 	say 'Doing my best to mock xrandr';
-	say $base_name . ' connected primary';
-	say '  1920x1080 ' . ($base ? '*' : '');
-	say '  800x600';
+	say "$base_name connected primary " . ($base ? '1920x1080+0+0' : '');
+	say '  1920x1080 60';
+	say '  800x600 60';
 
-	say $extended_name . ' connected';
-	say '  1920x1080 ' . ($extended ? '*' : '');
-	say '  800x600';
+	say "$extended_name connected " . ($extended ? '1920x1080+1920+0' : '');
+	say '  1920x1080 60';
+	say '  800x600 60';
 
-	say 'SomethingElse-1 disconnected';
+	say "$extra_name connected " . ($extra ? '3840x2160+0+2160' : '');
+	say '  3840x2160 60';
+	say '  800x600 60';
 }
 
 if (@ARGV == 0) {
 	write_output;
 }
-if ($ARGV[0] eq '-v') {
+elsif ($ARGV[0] eq '-v') {
 	reset_state;
 	print 'ready to mock';
 }
@@ -64,13 +69,18 @@ else {
 		if ($ARGV[$i] eq '--output') {
 			$context = $ARGV[++$i];
 		}
-		elsif ($ARGV[$i] eq '--auto') {
+		elsif ($ARGV[$i] eq '--auto' || $ARGV[$i] eq '--mode') {
 			die 'no context' unless $context;
+			++$i if $ARGV[$i] eq '--mode';
+
 			if ($context eq $base_name) {
 				$base = 1;
 			}
 			elsif ($context eq $extended_name) {
 				$extended = 1;
+			}
+			elsif ($context eq $extra_name) {
+				$extra = 1;
 			}
 			else {
 				die 'bad name';
@@ -83,6 +93,9 @@ else {
 			}
 			elsif ($context eq $extended_name) {
 				$extended = 0;
+			}
+			elsif ($context eq $extra_name) {
+				$extra = 0;
 			}
 			else {
 				die 'bad name';
