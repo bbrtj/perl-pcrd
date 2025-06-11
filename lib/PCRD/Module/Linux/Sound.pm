@@ -17,9 +17,13 @@ sub _load_config
 	return $config;
 }
 
-sub check_volume
+# cache command checking, since all features use the same command
+sub _check
 {
-	my ($self, $feature) = @_;
+	my ($self) = @_;
+
+	return $self->{_check}
+		if exists $self->{_check};
 
 	return $self->owner->broadcast($self->config->{command}, 'info')
 		->then(
@@ -30,7 +34,21 @@ sub check_volume
 			sub {
 				return Future->done(['command', shift]);
 			}
+		)->on_done(
+		sub {
+			my ($value) = @_;
+			$self->{_check} = $value;
+		}
 		);
+}
+
+## VOLUME
+
+sub check_volume
+{
+	my ($self, $feature) = @_;
+
+	return $self->_check;
 }
 
 sub get_volume
@@ -47,9 +65,7 @@ sub get_volume
 					}
 				}
 
-				return -1
-				unless @volumes > 0;
-
+				return -1 unless @volumes > 0;
 				return sum(@volumes) / @volumes / 100;
 			}
 		);
@@ -69,20 +85,13 @@ sub set_volume
 		->then(sub { 1 });
 }
 
+## MUTE
+
 sub check_mute
 {
 	my ($self, $feature) = @_;
 
-	return $self->owner->broadcast($self->config->{command}, 'info')
-		->then(
-			sub {
-				return ['command', '(returned nothing)'] unless @_ > 0;
-				return undef;
-			},
-			sub {
-				return Future->done(['command', shift]);
-			}
-		);
+	return $self->_check;
 }
 
 sub get_mute
@@ -111,6 +120,41 @@ sub set_mute
 		->then(sub { 1 });
 }
 
+## MUTE MICROPHONE
+
+sub check_mute_microphone
+{
+	my ($self, $feature) = @_;
+
+	return $self->_check;
+}
+
+sub get_mute_microphone
+{
+	my ($self, $feature) = @_;
+	$self->owner->broadcast($self->config->{command}, 'get-source-mute', '@DEFAULT_SOURCE@')
+		->then(
+			sub {
+				foreach my $line (@_) {
+					return !!1
+					if $line =~ m/\byes\b/i;
+				}
+
+				return !!0;
+			}
+		);
+}
+
+sub set_mute_microphone
+{
+	my ($self, $feature, $value) = @_;
+	$value = $value ? 1 : 0
+		unless $value =~ m/toggle/i;
+
+	return $self->owner->broadcast($self->config->{command}, 'set-source-mute', '@DEFAULT_SOURCE@', $value)
+		->then(sub { 1 });
+}
+
 sub _build_features
 {
 	my ($self) = @_;
@@ -119,6 +163,7 @@ sub _build_features
 
 	$features->{volume}{needs_agent} = !!1;
 	$features->{mute}{needs_agent} = !!1;
+	$features->{mute_microphone}{needs_agent} = !!1;
 
 	return $features;
 }

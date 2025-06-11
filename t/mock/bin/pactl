@@ -6,18 +6,20 @@ use autodie;
 my $state = 't/mock/bin/pactl-state';
 my $volume;
 my $mute;
+my $mute_mic;
 read_state();
 
 sub write_state
 {
 	open my $fh, '>', $state;
-	print {$fh} join "\n", $volume, $mute;
+	print {$fh} join "\n", $volume, $mute, $mute_mic;
 }
 
 sub reset_state
 {
 	$volume = 50;
 	$mute = 0;
+	$mute_mic = 0;
 	write_state;
 }
 
@@ -28,8 +30,8 @@ sub read_state
 	}
 	else {
 		open my $fh, '<', $state;
-		($volume, $mute) = readline $fh;
-		chomp($volume, $mute);
+		($volume, $mute, $mute_mic) = readline $fh;
+		chomp($volume, $mute, $mute_mic);
 	}
 }
 
@@ -56,6 +58,19 @@ elsif ($ARGV[0] eq 'set-sink-mute' && $ARGV[1] eq '@DEFAULT_SINK@' && defined $A
 	}
 	else {
 		$mute = !!$arg;
+	}
+	write_state;
+}
+elsif ($ARGV[0] eq 'get-source-mute' && $ARGV[1] eq '@DEFAULT_SOURCE@') {
+	print "yessir, mute status is " . ($mute_mic ? 'yes' : 'no');
+}
+elsif ($ARGV[0] eq 'set-source-mute' && $ARGV[1] eq '@DEFAULT_SOURCE@' && defined $ARGV[2]) {
+	my $arg = $ARGV[2];
+	if ($arg eq 'toggle') {
+		$mute_mic = !$mute_mic;
+	}
+	else {
+		$mute_mic = !!$arg;
 	}
 	write_state;
 }

@@ -6,6 +6,7 @@ Revision history for PCRD
 	- Fix rare cases of division by zero error
 	- Move suspend feature to Device module
 	- Add reboot and poweroff features to Device module
+	- Add mute_microphone feature to Sound module
 	- Improve xrandr feature
 
 1.000 - 2025-06-08

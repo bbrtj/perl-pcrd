@@ -15,6 +15,10 @@ sub check_mute { ... }
 sub get_mute { ... }
 sub set_mute { ... }
 
+sub check_mute_microphone { ... }
+sub get_mute_microphone { ... }
+sub set_mute_microphone { ... }
+
 sub _build_features
 {
 	return {
@@ -30,6 +34,10 @@ sub _build_features
 		},
 		mute => {
 			desc => 'Get current mute status of the default audio sink',
+			mode => 'rw',
+		},
+		mute_microphone => {
+			desc => 'Get current mute status of the default audio source',
 			mode => 'rw',
 		},
 	};
