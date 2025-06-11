@@ -131,7 +131,7 @@ sub set_xrandr
 
 				# if there is no external display connected, or base display is
 				# not active, simply turn on the base one
-				if ($auto && (%active == 2 || (%active == 1 && !$active{$base}))) {
+				if ($auto && (keys %active == 2 || (keys %active == 1 && !$active{$base}))) {
 					$mode = 'O';
 				}
 

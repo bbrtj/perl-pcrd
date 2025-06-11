@@ -43,7 +43,7 @@ sub get_memory
 		}
 	}
 
-	if (%data != 4 || $data{memtotal} == 0) {
+	if (keys %data != 4 || $data{memtotal} == 0) {
 		return -1;
 	}
 
@@ -84,7 +84,7 @@ sub get_swap
 		}
 	}
 
-	if (%data != 2 || $data{swaptotal} == 0) {
+	if (keys %data != 2 || $data{swaptotal} == 0) {
 		return -1;
 	}
 
