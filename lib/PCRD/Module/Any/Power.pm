@@ -24,9 +24,6 @@ sub check_life { ... }
 sub init_life { ... }
 sub get_life { ... }
 
-sub check_suspend { ... }
-sub set_suspend { ... }
-
 sub _build_features
 {
 	return {
@@ -55,10 +52,6 @@ sub _build_features
 					value => 5,
 				},
 			},
-		},
-		suspend => {
-			desc => 'Suspends the machine',
-			mode => 'w',
 		},
 	};
 }

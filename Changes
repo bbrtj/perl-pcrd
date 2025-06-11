@@ -4,6 +4,8 @@ Revision history for PCRD
 	- Fix display brightness becoming stuck on low values
 	- Fix unicode handling in network communication
 	- Fix rare cases of division by zero error
+	- Move suspend feature to Device module
+	- Add reboot and poweroff features to Device module
 	- Improve xrandr feature
 
 1.000 - 2025-06-08

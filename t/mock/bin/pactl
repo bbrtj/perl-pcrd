@@ -29,7 +29,7 @@ sub read_state
 	else {
 		open my $fh, '<', $state;
 		($volume, $mute) = readline $fh;
-		chomp $volume, $mute;
+		chomp($volume, $mute);
 	}
 }
 

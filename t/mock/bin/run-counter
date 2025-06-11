@@ -1,0 +1,41 @@
+#!/usr/bin/env perl
+
+use strict;
+use autodie;
+
+my $state = 't/mock/bin/run-counter-state';
+my $count;
+read_state();
+
+sub write_state
+{
+	open my $fh, '>', $state;
+	print {$fh} join "\n", $count;
+}
+
+sub reset_state
+{
+	$count = 0;
+	write_state;
+}
+
+sub read_state
+{
+	if (!-e $state) {
+		reset_state;
+	}
+	else {
+		open my $fh, '<', $state;
+		($count) = readline $fh;
+		chomp($count);
+	}
+}
+
+if ($ARGV[0] eq 'reset') {
+	reset_state;
+}
+else {
+	print $count++;
+	write_state;
+}
+

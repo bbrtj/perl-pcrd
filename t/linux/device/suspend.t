@@ -1,5 +1,4 @@
 use Test2::V0;
-use IO::Async::Timer::Periodic;
 
 use lib 't/lib';
 use PCRDTest;
@@ -9,12 +8,12 @@ plan skip_all 'This test requires Linux'
 	unless lc $^O eq 'linux';
 
 ################################################################################
-# This tests whether the Power module's suspend works
+# This tests whether the Device module's suspend works
 ################################################################################
 
 my $pcrd = PCRDTest->new(
 	config => {
-		Power => {
+		Device => {
 			enabled => 1,
 			all_features => 0,
 			suspend => {
@@ -26,16 +25,11 @@ my $pcrd = PCRDTest->new(
 	},
 );
 
-$pcrd->add_test_timer(
-	IO::Async::Timer::Periodic->new(
-		interval => 0.06,
-		on_tick => sub {
-			$pcrd->test_message(['Power', 'suspend', 1], 1);
-		},
-	)
+my @cases = (
+	[['Device', 'suspend', 1], 1],
 );
 
-$pcrd->start(0.1);
+$pcrd->start_cases(\@cases);
 $pcrd->run_tests;
 
 is(PCRDFiles->contents('suspend'), 'disk', 'suspend ok');

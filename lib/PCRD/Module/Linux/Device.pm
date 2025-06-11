@@ -31,6 +31,32 @@ sub get_lid
 	return scalar($liddata =~ /\bopen\b/i);
 }
 
+## SUSPEND
+
+sub prepare_suspend
+{
+	my ($self, $feature) = @_;
+
+	@{$feature->vars->{files}} = glob $feature->config->{pattern};
+}
+
+sub check_suspend
+{
+	my ($self, $feature) = @_;
+
+	return ['unique', 'pattern'] unless @{$feature->vars->{files}} == 1;
+	return ['writable', 'pattern'] unless -w $feature->vars->{files}[0];
+	return undef;
+}
+
+sub set_suspend
+{
+	my ($self, $feature, $value) = @_;
+
+	PCRD::Util::spew($feature->vars->{files}[0], $feature->config->{state});
+	return 1;
+}
+
 sub _build_features
 {
 	my ($self) = @_;
@@ -42,6 +68,19 @@ sub _build_features
 		pattern => {
 			desc => 'glob file pattern for lid state',
 			value => '/proc/acpi/button/lid/LID*/state',
+		},
+	};
+
+	$features->{suspend}{info} = 'Suspend is done by writing to a file usually found under /sys directory';
+	$features->{suspend}{config} = {
+		%{$features->{suspend}{config} // {}},
+		pattern => {
+			desc => 'glob file pattern',
+			value => '/sys/power/state',
+		},
+		state => {
+			desc => 'state to which the machine should be put',
+			value => 'mem',
 		},
 	};
 
