@@ -43,10 +43,11 @@ sub get_memory
 		}
 	}
 
-	return ($data{memtotal} - $data{memfree} - $data{buffers} - $data{cached}) / $data{memtotal}
-		if scalar keys %data == 4;
+	if (%data != 4 || $data{memtotal} == 0) {
+		return -1;
+	}
 
-	die 'could not correctly fetch memory usage';
+	return ($data{memtotal} - $data{memfree} - $data{buffers} - $data{cached}) / $data{memtotal};
 }
 
 ### SWAP
@@ -83,10 +84,11 @@ sub get_swap
 		}
 	}
 
-	return 1 - $data{swapfree} / $data{swaptotal}
-		if scalar keys %data == 2;
+	if (%data != 2 || $data{swaptotal} == 0) {
+		return -1;
+	}
 
-	die 'could not correctly fetch swap usage';
+	return 1 - $data{swapfree} / $data{swaptotal};
 }
 
 ### STORAGE
@@ -116,10 +118,11 @@ sub get_storage
 		last;
 	}
 
-	return $cols[2] / $cols[3]
-		if @cols >= 4;
+	if (@cols < 4 || $cols[3] == 0) {
+		return -1;
+	}
 
-	die 'could not correctly fetch storage usage';
+	return $cols[2] / $cols[3];
 }
 
 ### CPU
@@ -182,7 +185,9 @@ sub get_cpu
 		$total_idle += $item->[1] - $base_idle;
 	}
 
-	return $total_working / ($total_working + $total_idle);
+	my $denominator = ($total_working + $total_idle);
+	return -1 if $denominator == 0;
+	return $total_working / $denominator;
 }
 
 ### CPU SCALING

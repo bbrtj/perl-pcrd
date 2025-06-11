@@ -3,6 +3,7 @@ Revision history for PCRD
 {{$NEXT}}
 	- Fix display brightness becoming stuck on low values
 	- Fix unicode handling in network communication
+	- Fix rare cases of division by zero error
 	- Improve xrandr feature
 
 1.000 - 2025-06-08
