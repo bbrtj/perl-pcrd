@@ -183,6 +183,8 @@ sub init
 {
 	my ($self, %args) = @_;
 	return unless $self->provides('i');
+	return unless $self->functional;
+
 	my $init_method = "init_$self->{name}";
 
 	if (!$self->needs_agent xor $args{agent_present}) {
