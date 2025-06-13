@@ -23,7 +23,6 @@ sub get_date
 	return localtime->strftime($feature->config->{format});
 }
 
-sub check_uptime { ... }
 sub get_uptime { ... }
 
 sub _build_features

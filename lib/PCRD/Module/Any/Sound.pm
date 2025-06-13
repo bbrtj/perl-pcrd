@@ -7,15 +7,12 @@ use parent 'PCRD::Module';
 
 use constant name => 'Sound';
 
-sub check_volume { ... }
 sub get_volume { ... }
 sub set_volume { ... }
 
-sub check_mute { ... }
 sub get_mute { ... }
 sub set_mute { ... }
 
-sub check_mute_microphone { ... }
 sub get_mute_microphone { ... }
 sub set_mute_microphone { ... }
 

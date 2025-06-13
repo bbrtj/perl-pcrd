@@ -7,20 +7,15 @@ use parent 'PCRD::Module';
 
 use constant name => 'Performance';
 
-sub check_memory { ... }
 sub get_memory { ... }
 
-sub check_swap { ... }
 sub get_swap { ... }
 
-sub check_storage { ... }
 sub get_storage { ... }
 
-sub check_cpu { ... }
 sub init_cpu { ... }
 sub get_cpu { ... }
 
-sub check_cpu_scaling { ... }
 sub get_cpu_scaling { ... }
 sub set_cpu_scaling { ... }
 

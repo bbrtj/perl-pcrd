@@ -7,20 +7,15 @@ use parent 'PCRD::Module';
 
 use constant name => 'Power';
 
-sub check_capacity { ... }
 sub get_capacity { ... }
 
-sub check_ac { ... }
 sub get_ac { ... }
 
-sub check_charging { ... }
 sub get_charging { ... }
 
-sub check_charging_threshold { ... }
 sub get_charging_threshold { ... }
 sub set_charging_threshold { ... }
 
-sub check_life { ... }
 sub init_life { ... }
 sub get_life { ... }
 

@@ -9,10 +9,8 @@ use parent 'PCRD::Module';
 
 use constant name => 'Device';
 
-sub check_lid { ... }
 sub get_lid { ... }
 
-sub check_suspend { ... }
 sub set_suspend { ... }
 
 # no real way to check if the command works without running it

@@ -9,7 +9,6 @@ use parent 'PCRD::Module';
 
 use constant name => 'Display';
 
-sub check_brightness { ... }
 sub get_brightness { ... }
 sub set_brightness { ... }
 
