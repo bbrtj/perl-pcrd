@@ -5,7 +5,7 @@ use warnings;
 
 use Future;
 
-use PCRD::CheckFailed;
+use PCRD::X::CheckFailed;
 
 use PCRD::Mite;
 
@@ -157,12 +157,9 @@ sub check
 					sub {
 						my $res = shift;
 
-						PCRD::CheckFailed->new(
-							feature => $self,
-							error => $res,
-						)->raise_warning if defined $res && !$args{silent};
-
 						$self->_set_functional(!defined $res);
+						PCRD::X::CheckFailed->raise($res->[0], $self, $res->[1])
+						if !$self->functional && !$args{silent};
 					},
 				);
 

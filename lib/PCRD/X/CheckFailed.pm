@@ -1,11 +1,15 @@
-package PCRD::CheckFailed;
+package PCRD::X::CheckFailed;
 
 use v5.14;
 use warnings;
 
 use PCRD::Mite;
 
-my $error_text = {
+extends 'PCRD::X';
+
+our $FATAL = $ENV{PCRD_CHECK_FATAL};
+
+use constant ERROR_TEXT => {
 	'unique' => "Zero or multiple files found by pattern '%s'",
 	'found' => "Zero files found by pattern '%s'",
 	'readable' => "Files found by pattern '%s' are not readable",
@@ -22,11 +26,29 @@ has 'feature' => (
 	required => 1,
 );
 
-has 'error' => (
+has 'feature_part' => (
 	is => 'ro',
-	isa => 'Tuple [Str, Str]',
+	isa => 'Str',
 	required => 1,
 );
+
+sub raise
+{
+	my ($self, $message, $feature, $feature_part) = @_;
+
+	return $self->new(
+		message => $message,
+		feature => $feature,
+		feature_part => $feature_part,
+	)->raise unless ref $self;
+
+	if ($FATAL) {
+		die $self;
+	}
+	else {
+		warn $self;
+	}
+}
 
 sub error_string
 {
@@ -35,19 +57,21 @@ sub error_string
 	return join "\n", grep { defined } $self->feature->desc, $self->feature->info;
 }
 
-sub raise_warning
+sub stringify
 {
 	my ($self) = @_;
 
-	my $error = $self->error;
 	my $feature = $self->feature;
 	my $feature_name = $feature->owner->name . '.' . $feature->name;
 
-	warn "'$feature_name' will not work properly with current configuration.\n";
-	warn sprintf($error_text->{$error->[0]}, $error->[1]) . "\n";
-	warn $self->error_string . "\n";
-	warn "Current config:\n" . $feature->dump_config . "\n";
-	warn "\n";
+	my $error_text = ERROR_TEXT->{$self->message};
+	return sprintf <<MESSAGE, $feature_name, $self->feature_part, $self->error_string, $feature->dump_config;
+'%s' will not work properly with current configuration.
+$error_text
+%s
+Current config:
+%s
+MESSAGE
 }
 
 1;
