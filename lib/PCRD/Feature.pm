@@ -141,7 +141,6 @@ sub prepare
 sub check
 {
 	my ($self, %args) = @_;
-	$self->prepare;
 
 	if ($args{dependencies}) {
 		$self->check_dependencies;

@@ -175,30 +175,29 @@ sub explain_config
 	$self->config_obj->explain_config(values %{$self->modules});
 }
 
-sub check_modules
+sub prepare_modules
 {
 	my ($self, %args) = @_;
 	my $modules = $self->modules;
+	my @order = sort keys %$modules;
 
-	foreach my $module (sort keys %$modules) {
+	foreach my $module (@order) {
+		$modules->{$module}->prepare;
+	}
+
+	foreach my $module (@order) {
 		$modules->{$module}->check(%args);
 	}
 
 	# after all features are checked, check their dependencies
 	# TODO: this # should be done after all futures from the previous foreach are complete
 	if (!$args{agent_present}) {
-		foreach my $module (sort keys %$modules) {
+		foreach my $module (@order) {
 			$modules->{$module}->check(%args, dependencies => 1);
 		}
 	}
-}
 
-sub init_modules
-{
-	my ($self, %args) = @_;
-	my $modules = $self->modules;
-
-	foreach my $module (sort keys %$modules) {
+	foreach my $module (@order) {
 		$modules->{$module}->init(%args);
 	}
 }
@@ -207,16 +206,14 @@ sub agent_present
 {
 	my ($self) = @_;
 
-	$self->check_modules(agent_present => 1);
-	$self->init_modules(agent_present => 1);
+	$self->prepare_modules(agent_present => 1);
 }
 
 sub agent_absent
 {
 	my ($self) = @_;
 
-	$self->check_modules(agent_present => 0);
-	$self->init_modules(agent_present => 0);
+	$self->prepare_modules(agent_present => 0);
 }
 
 sub module
@@ -233,8 +230,7 @@ sub start
 	die 'no modules specified, nothing to do'
 		unless keys %{$self->modules};
 
-	$self->check_modules;
-	$self->init_modules;
+	$self->prepare_modules;
 
 	say 'starting the daemon...';
 	$self->listener;

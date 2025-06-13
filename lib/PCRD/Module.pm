@@ -88,13 +88,13 @@ sub feature
 	return $self->features->{$name} // die "No such feature: $name";
 }
 
-sub init
+sub prepare
 {
-	my ($self, %args) = @_;
+	my ($self) = @_;
 
 	my $features = $self->features;
 	foreach my $feature_name (sort keys %$features) {
-		$features->{$feature_name}->init(%args);
+		$features->{$feature_name}->prepare;
 	}
 }
 
@@ -105,6 +105,16 @@ sub check
 	my $features = $self->features;
 	foreach my $feature_name (sort keys %$features) {
 		$features->{$feature_name}->check(%args);
+	}
+}
+
+sub init
+{
+	my ($self, %args) = @_;
+
+	my $features = $self->features;
+	foreach my $feature_name (sort keys %$features) {
+		$features->{$feature_name}->init(%args);
 	}
 }
 
