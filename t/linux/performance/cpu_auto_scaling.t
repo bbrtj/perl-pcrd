@@ -34,6 +34,7 @@ my $pcrd = PCRDTest->new(
 			cpu_scaling => {
 				enabled => 1,
 				pattern => PCRDFiles->prepare('scaling', get_scaling),
+				available_pattern => PCRDFiles->prepare('available', 'on_ac on_battery '),
 			},
 			cpu_auto_scaling => {
 				enabled => 1,

@@ -18,6 +18,7 @@ my $pcrd = PCRDTest->new(
 			cpu_scaling => {
 				enabled => 1,
 				pattern => PCRDFiles->prepare('scaling', 'performance'),
+				available_pattern => PCRDFiles->prepare('available', 'performance powersave'),
 			},
 		},
 	},

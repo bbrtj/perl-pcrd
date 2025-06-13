@@ -13,6 +13,7 @@ my $error_text = {
 	'command' => "Command does not run: %s",
 	'dependency' => "Failure to resolve dependency on feature '%s'",
 	'result' => "Unexpected result of querying the device's resource '%s'",
+	'config' => "Bad configuration value '%s'",
 };
 
 has 'feature' => (

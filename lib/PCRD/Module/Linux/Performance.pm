@@ -197,6 +197,12 @@ sub prepare_cpu_scaling
 	my ($self, $feature) = @_;
 
 	@{$feature->vars->{files}} = glob $feature->config->{pattern};
+	@{$feature->vars->{available_files}} = glob $feature->config->{available_pattern};
+
+	# ignore errors at this stage
+	PCRD::Util::try {
+		@{$feature->vars->{available}} = split /\s+/, PCRD::Util::slurp_1 $feature->vars->{available_files}[0];
+	}
 }
 
 sub check_cpu_scaling
@@ -206,6 +212,11 @@ sub check_cpu_scaling
 	return ['unique', 'pattern'] unless @{$feature->vars->{files}} == 1;
 	return ['readable', 'pattern'] unless -r $feature->vars->{files}[0];
 	return ['writable', 'pattern'] unless -w $feature->vars->{files}[0];
+
+	return ['unique', 'available_pattern'] unless @{$feature->vars->{available_files}} == 1;
+	return ['readable', 'available_pattern'] unless -r $feature->vars->{available_files}[0];
+	return ['result', 'available_pattern'] unless @{$feature->vars->{available}};
+
 	return undef;
 }
 
@@ -220,11 +231,25 @@ sub set_cpu_scaling
 {
 	my ($self, $feature, $value) = @_;
 
+	die 'value must be any of: ' . join ', ', @{$feature->vars->{available}}
+		unless PCRD::Util::any { $value eq $_ } @{$feature->vars->{available}};
+
 	PCRD::Util::spew($feature->vars->{files}[0], $value);
 	return 1;
 }
 
 ### CPU AUTO SCALING
+
+sub check_cpu_auto_scaling
+{
+	my ($self, $feature) = @_;
+
+	my $available = $feature->dependencies->{'Performance.cpu_scaling'}->vars->{available};
+
+	return ['config', 'ac'] unless PCRD::Util::any { $feature->config->{ac} eq $_ } @$available;
+	return ['config', 'battery'] unless PCRD::Util::any { $feature->config->{battery} eq $_ } @$available;
+	return undef;
+}
 
 sub init_cpu_auto_scaling
 {
@@ -311,6 +336,10 @@ sub _build_features
 		pattern => {
 			desc => 'glob file pattern',
 			value => '/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor',
+		},
+		available_pattern => {
+			desc => 'glob file pattern of the available governors',
+			value => '/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors',
 		},
 	};
 
