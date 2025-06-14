@@ -6,6 +6,9 @@ use warnings;
 use Future;
 
 use PCRD::X::CheckFailed;
+use PCRD::X::ExecutionFailed;
+use PCRD::X::BadArgument;
+use PCRD::X::BadAction;
 
 use PCRD::Mite;
 
@@ -211,10 +214,13 @@ sub execute
 
 	my $f = Future->call(
 		sub {
-			die "cannot execute action $action for " . $self->name
+			PCRD::X::BadAction->raise('feature does not provide that action')
+				unless $self->provides($action);
+
+			PCRD::X::BadAction->raise('action cannot be executed')
 				unless $prefixes->{$action};
 
-			die 'feature ' . $self->name . ' is not functional'
+			PCRD::X::BadAction->raise('feature is not functional')
 				unless $self->functional;
 
 			my $method = "$prefixes->{$action}_" . $self->name;

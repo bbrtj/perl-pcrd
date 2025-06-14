@@ -3,6 +3,8 @@ package PCRD::Notifier;
 use v5.14;
 use warnings;
 
+use Scalar::Util qw(blessed);
+
 use parent 'IO::Async::Notifier';
 
 sub new
@@ -10,6 +12,8 @@ sub new
 	my ($class, %args) = @_;
 	$args{on_error} = sub {
 		my (undef, $message, $name, @details) = @_;
+
+		return if blessed $message && $message->isa('PCRD::X');
 
 		$name = $name ? "[$name] " : '';
 		say "ERROR: $name$message";

@@ -18,9 +18,12 @@ sub set_poweroff
 {
 	my ($self, $feature, $value) = @_;
 
-	return 0 unless $value;
-	PCRD::Util::slurp_command($feature->config->{command});
-	return 1;
+	return PCRD::Util::execute_if_true(
+		$value,
+		sub {
+			PCRD::Util::slurp_command($feature->config->{command});
+		}
+	);
 }
 
 # no real way to check if the command works without running it
@@ -28,9 +31,12 @@ sub set_reboot
 {
 	my ($self, $feature, $value) = @_;
 
-	return 0 unless $value;
-	PCRD::Util::slurp_command($feature->config->{command});
-	return 1;
+	return PCRD::Util::execute_if_true(
+		$value,
+		sub {
+			PCRD::Util::slurp_command($feature->config->{command});
+		}
+	);
 }
 
 sub _build_features

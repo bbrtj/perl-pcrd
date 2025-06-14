@@ -43,9 +43,8 @@ sub get_brightness
 sub set_brightness
 {
 	my ($self, $feature, $direction) = @_;
-
-	die 'invalid direction: must be either 1 or -1 (up or down)'
-		unless $direction && $direction =~ m/^[+-]?1$/;
+	state $validator = PCRD::Util::generate_validator(re => qr{^[+-]?1$}, hint => 'must be either +1 or -1');
+	$validator->($direction);
 
 	my $curr = PCRD::Util::slurp_1($feature->vars->{now_files}[0]);
 	my $max = PCRD::Util::slurp_1($feature->vars->{max_files}[0]);
@@ -65,7 +64,7 @@ sub set_brightness
 	}
 
 	PCRD::Util::spew($feature->vars->{now_files}[0], $new_curr);
-	return 1;
+	return PCRD::Protocol::TRUE;
 }
 
 sub _build_features

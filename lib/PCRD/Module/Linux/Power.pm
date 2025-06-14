@@ -3,7 +3,6 @@ package PCRD::Module::Linux::Power;
 use v5.14;
 use warnings;
 use List::Util qw(sum min max);
-use Scalar::Util qw(looks_like_number);
 use IO::Async::Timer::Periodic;
 
 use parent 'PCRD::Module::Any::Power';
@@ -142,10 +141,12 @@ sub get_charging_threshold
 sub set_charging_threshold
 {
 	my ($self, $feature, $value) = @_;
+	state $validator = PCRD::Util::generate_validator(re => qr{^\d+-\d+$}, hint => 'must be a range X-Y');
+	$validator->($value);
 
 	my @vals = split /-/, $value;
-	die "invalid threshold value format"
-		unless (grep { defined && looks_like_number($_) && $_ >= 0 && $_ <= 100 } @vals) == 2;
+	PCRD::X::BadArgument->raise('invalid threshold values')
+		if $vals[1] > 100 || $vals[0] >= $vals[1];
 
 	foreach my $file (@{$feature->vars->{start_files}}) {
 		PCRD::Util::spew($file, $vals[0]);
@@ -155,7 +156,7 @@ sub set_charging_threshold
 		PCRD::Util::spew($file, $vals[1]);
 	}
 
-	return 1;
+	return PCRD::Protocol::TRUE;
 }
 
 ### LIFE

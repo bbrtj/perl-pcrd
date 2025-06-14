@@ -53,8 +53,12 @@ sub set_suspend
 {
 	my ($self, $feature, $value) = @_;
 
-	PCRD::Util::spew($feature->vars->{files}[0], $feature->config->{state});
-	return 1;
+	return PCRD::Util::execute_if_true(
+		$value,
+		sub {
+			PCRD::Util::spew($feature->vars->{files}[0], $feature->config->{state});
+		}
+	);
 }
 
 sub _build_features

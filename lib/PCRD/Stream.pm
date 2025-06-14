@@ -140,11 +140,6 @@ sub _handle_query
 			next;
 		}
 
-		if (!$feature->provides($action)) {
-			$write->(!!0, "feature '$feature_name' from module '$module' does not provide action '$action'");
-			next;
-		}
-
 		$feature->execute($action, $value)
 			->on_done(
 				sub {

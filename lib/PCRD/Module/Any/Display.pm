@@ -91,24 +91,22 @@ sub get_xrandr
 sub set_xrandr
 {
 	my ($self, $feature, $input) = @_;
+	state $validator = PCRD::Util::generate_validator(
+		re => qr{(auto|[IOPE]+(\s+left|right|above|below)?)},
+		hint => 'must be auto or a string of [IOPE] and an optional side (left/right/above/below)',
+	);
 
-	my $mode;
-	my $side;
+	$validator->($input);
+
 	my $auto;
-
-	if ($input eq 'auto') {
+	my ($mode, $side) = split /\s+/, $input;
+	if ($mode eq 'auto') {
 		$auto = 1;
 		$mode = $feature->config->{auto_mode};
 		$side = $feature->config->{auto_side};
 	}
-	else {
-		($mode, $side) = split /\s+/, $input;
-	}
 
 	if ($side) {
-		die "invalid side $side"
-			unless PCRD::Util::any { $side eq $_ } qw(left right above below);
-
 		$side = "$side-of"
 			if PCRD::Util::any { $side eq $_ } qw(left right);
 	}
@@ -155,9 +153,6 @@ sub set_xrandr
 						die 'no external display is connected' unless $external;
 						push @{$command{$base}}, '--off';
 					}
-					else {
-						die "please specify any of: I, O, P, E";
-					}
 				}
 
 				# disable any active monitors
@@ -173,7 +168,8 @@ sub set_xrandr
 					push @cmd, '--output', $out, @{$command{$out}};
 				}
 
-				return $self->owner->broadcast($feature->config->{command}, @cmd)->then(sub { !!1 });
+				return $self->owner->broadcast($feature->config->{command}, @cmd)
+				->then(sub { PCRD::Protocol::TRUE });
 			}
 		);
 }

@@ -31,9 +31,9 @@ my $pcrd = PCRDTest->new(
 
 my @cases = (
 	[['Display', 'brightness'], int(log($current) / log($max) * 100) / 100],
-	[['Display', 'brightness', 1], 1],
+	[['Display', 'brightness', 1], PCRD::Protocol::TRUE],
 	[['Display', 'brightness'], int(log($current) / log($max) * 100 + 10) / 100],
-	[['Display', 'brightness', -1], 1],
+	[['Display', 'brightness', -1], PCRD::Protocol::TRUE],
 );
 
 $pcrd->start_cases(\@cases);

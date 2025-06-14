@@ -26,10 +26,11 @@ my $pcrd = PCRDTest->new(
 
 my @cases = (
 	[['Performance', 'cpu_scaling'], 'performance'],
-	[['Performance', 'cpu_scaling', 'powersave'], 1],
+	[['Performance', 'cpu_scaling', 'powersave'], PCRD::Protocol::TRUE],
 	[['Performance', 'cpu_scaling'], 'powersave'],
-	[['Performance', 'cpu_scaling', 'performance'], 1],
+	[['Performance', 'cpu_scaling', 'performance'], PCRD::Protocol::TRUE],
 	[['Performance', 'cpu_scaling'], 'performance'],
+	[['Performance', 'cpu_scaling', 'wrong'], 'invalid argument, must be any of: performance, powersave', !!1],
 );
 
 $pcrd->start_cases(\@cases);

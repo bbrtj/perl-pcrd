@@ -12,7 +12,7 @@ sub check_test
 	return ['config', 'part'];
 }
 
-sub init_test
+sub get_test
 {
 	# never executed
 }
@@ -22,7 +22,7 @@ sub _build_features
 	return {
 		test => {
 			desc => 'check always fails',
-			mode => 'i',
+			mode => 'r',
 		},
 	};
 }

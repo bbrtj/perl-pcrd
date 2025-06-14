@@ -121,13 +121,11 @@ sub _build_client
 
 sub test_message
 {
-	my ($self, $args, $expected, $name_extra) = @_;
+	my ($self, $args, $expected, $should_error) = @_;
 
 	my $name = join('.', @{$args}) . ' ok';
-	$name .= " ($name_extra)" if defined $name_extra;
-
 	$self->client->send(@$args);
-	push @{$self->msgs->{expected}}, [$expected, $name];
+	push @{$self->msgs->{expected}}, [$expected, $name, $should_error];
 }
 
 sub run_tests
@@ -136,9 +134,9 @@ sub run_tests
 
 	for my $i (keys @{$self->msgs->{got}}) {
 		my ($success, $got) = @{$self->msgs->{got}[$i]};
-		my ($expected, $message) = @{$self->msgs->{expected}[$i]};
+		my ($expected, $message, $should_error) = @{$self->msgs->{expected}[$i]};
 
-		ok($success, 'response message was success');
+		is(!!$success, !$should_error, 'response message status ok');
 		if (ref $expected eq 'CODE') {
 			local $_ = $got;
 			ok($expected->(), "$message (got $got)");

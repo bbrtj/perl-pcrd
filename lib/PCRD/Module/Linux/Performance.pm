@@ -230,12 +230,11 @@ sub get_cpu_scaling
 sub set_cpu_scaling
 {
 	my ($self, $feature, $value) = @_;
-
-	die 'value must be any of: ' . join ', ', @{$feature->vars->{available}}
-		unless PCRD::Util::any { $value eq $_ } @{$feature->vars->{available}};
+	$feature->vars->{validator} //= PCRD::Util::generate_validator(custom => $feature->vars->{available});
+	$feature->vars->{validator}->($value);
 
 	PCRD::Util::spew($feature->vars->{files}[0], $value);
-	return 1;
+	return PCRD::Protocol::TRUE;
 }
 
 ### CPU AUTO SCALING

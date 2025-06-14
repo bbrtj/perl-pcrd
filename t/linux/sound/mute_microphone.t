@@ -27,15 +27,15 @@ my $pcrd = PCRDTest->new(
 );
 
 my @cases = (
-	[['Sound', 'mute_microphone'], $muted],
-	[['Sound', 'mute_microphone', '1'], 1],
-	[['Sound', 'mute_microphone'], !$muted],
-	[['Sound', 'mute_microphone', 'toggle'], 1],
-	[['Sound', 'mute_microphone'], $muted],
-	[['Sound', 'mute_microphone', 'toggle'], 1],
-	[['Sound', 'mute_microphone'], !$muted],
-	[['Sound', 'mute_microphone', '0'], 1],
-	[['Sound', 'mute_microphone'], $muted],
+	[['Sound', 'mute_microphone'], PCRD::Protocol::bool_to_value($muted)],
+	[['Sound', 'mute_microphone', PCRD::Protocol::TRUE], PCRD::Protocol::TRUE],
+	[['Sound', 'mute_microphone'], PCRD::Protocol::bool_to_value(!$muted)],
+	[['Sound', 'mute_microphone', 'toggle'], PCRD::Protocol::TRUE],
+	[['Sound', 'mute_microphone'], PCRD::Protocol::bool_to_value($muted)],
+	[['Sound', 'mute_microphone', 'toggle'], PCRD::Protocol::TRUE],
+	[['Sound', 'mute_microphone'], PCRD::Protocol::bool_to_value(!$muted)],
+	[['Sound', 'mute_microphone', PCRD::Protocol::FALSE], PCRD::Protocol::TRUE],
+	[['Sound', 'mute_microphone'], PCRD::Protocol::bool_to_value($muted)],
 );
 
 # perl script is called multiple times, so this needs extra finalization time

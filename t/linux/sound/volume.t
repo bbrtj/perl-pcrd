@@ -29,9 +29,12 @@ my $pcrd = PCRDTest->new(
 
 my @cases = (
 	[['Sound', 'volume'], $volume],
-	[['Sound', 'volume', '1'], 1],
+	[['Sound', 'volume', '1'], PCRD::Protocol::TRUE],
 	[['Sound', 'volume'], $volume + 0.05],
-	[['Sound', 'volume', '-1'], 1],
+	[['Sound', 'volume', '-1'], PCRD::Protocol::TRUE],
+	[['Sound', 'volume'], $volume],
+	[['Sound', 'volume', '+1'], PCRD::Protocol::TRUE],
+	[['Sound', 'volume'], $volume + 0.05],
 );
 
 # perl script is called multiple times, so this needs extra finalization time

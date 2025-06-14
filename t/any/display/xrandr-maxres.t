@@ -29,17 +29,17 @@ sub get_string
 
 my @cases = (
 	[['Display', 'xrandr'], get_string(1, 0, 1)],
-	[['Display', 'xrandr', 'auto'], '1'],
+	[['Display', 'xrandr', 'auto'], PCRD::Protocol::TRUE],
 	[['Display', 'xrandr'], get_string(1, 0, 0)],
-	[['Display', 'xrandr', 'auto'], '1'],
+	[['Display', 'xrandr', 'auto'], PCRD::Protocol::TRUE],
 	[['Display', 'xrandr'], get_string(1, 1, 0)],
-	[['Display', 'xrandr', 'auto'], '1'],
+	[['Display', 'xrandr', 'auto'], PCRD::Protocol::TRUE],
 	[['Display', 'xrandr'], get_string(1, 0, 0)],
-	[['Display', 'xrandr', 'IP left'], '1'],
+	[['Display', 'xrandr', 'IP left'], PCRD::Protocol::TRUE],
 	[['Display', 'xrandr'], get_string(1, 1, 0)],
-	[['Display', 'xrandr', 'E'], '1'],
+	[['Display', 'xrandr', 'E'], PCRD::Protocol::TRUE],
 	[['Display', 'xrandr'], get_string(0, 1, 0)],
-	[['Display', 'xrandr', 'O'], '1'],
+	[['Display', 'xrandr', 'O'], PCRD::Protocol::TRUE],
 	[['Display', 'xrandr'], get_string(1, 0, 0)],
 );
 

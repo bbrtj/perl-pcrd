@@ -74,15 +74,14 @@ sub get_volume
 sub set_volume
 {
 	my ($self, $feature, $direction) = @_;
-
-	die 'invalid direction: must be either 1 or -1 (up or down)'
-		unless $direction && $direction =~ m/^[+-]?1$/;
+	state $validator = PCRD::Util::generate_validator(re => qr{^[+-]?1$}, hint => 'must be either +1 or -1');
+	$validator->($direction);
 
 	my $value = ($direction * $feature->config->{step}) . '%';
 	$value = "+$value" if $direction == 1;
 
 	return $self->owner->broadcast($self->config->{command}, 'set-sink-volume', '@DEFAULT_SINK@', $value)
-		->then(sub { 1 });
+		->then(sub { PCRD::Protocol::TRUE });
 }
 
 ## MUTE
@@ -101,11 +100,10 @@ sub get_mute
 		->then(
 			sub {
 				foreach my $line (@_) {
-					return !!1
-					if $line =~ m/\byes\b/i;
+					return PCRD::Protocol::TRUE if $line =~ m/\byes\b/i;
 				}
 
-				return !!0;
+				return PCRD::Protocol::FALSE;
 			}
 		);
 }
@@ -113,11 +111,15 @@ sub get_mute
 sub set_mute
 {
 	my ($self, $feature, $value) = @_;
-	$value = $value ? 1 : 0
-		unless $value =~ m/toggle/i;
+	state $validator = PCRD::Util::generate_validator(truefalse => 1, custom => ['toggle']);
+	$validator->($value);
+
+	if ($value ne 'toggle') {
+		$value = PCRD::Protocol::value_to_bool($value);
+	}
 
 	return $self->owner->broadcast($self->config->{command}, 'set-sink-mute', '@DEFAULT_SINK@', $value)
-		->then(sub { 1 });
+		->then(sub { PCRD::Protocol::TRUE });
 }
 
 ## MUTE MICROPHONE
@@ -132,15 +134,15 @@ sub check_mute_microphone
 sub get_mute_microphone
 {
 	my ($self, $feature) = @_;
-	$self->owner->broadcast($self->config->{command}, 'get-source-mute', '@DEFAULT_SOURCE@')
+
+	return $self->owner->broadcast($self->config->{command}, 'get-source-mute', '@DEFAULT_SOURCE@')
 		->then(
 			sub {
 				foreach my $line (@_) {
-					return !!1
-					if $line =~ m/\byes\b/i;
+					return PCRD::Protocol::TRUE if $line =~ m/\byes\b/i;
 				}
 
-				return !!0;
+				return PCRD::Protocol::FALSE;
 			}
 		);
 }
@@ -148,11 +150,15 @@ sub get_mute_microphone
 sub set_mute_microphone
 {
 	my ($self, $feature, $value) = @_;
-	$value = $value ? 1 : 0
-		unless $value =~ m/toggle/i;
+	state $validator = PCRD::Util::generate_validator(truefalse => 1, custom => ['toggle']);
+	$validator->($value);
+
+	if ($value ne 'toggle') {
+		$value = PCRD::Protocol::value_to_bool($value);
+	}
 
 	return $self->owner->broadcast($self->config->{command}, 'set-source-mute', '@DEFAULT_SOURCE@', $value)
-		->then(sub { 1 });
+		->then(sub { PCRD::Protocol::TRUE });
 }
 
 sub _build_features
