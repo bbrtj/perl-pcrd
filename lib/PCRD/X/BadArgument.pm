@@ -5,7 +5,7 @@ use warnings;
 
 use PCRD::Mite;
 
-extends 'PCRD::X';
+extends 'PCRD::X::ExecutionFailed';
 
 1;
 

@@ -202,11 +202,11 @@ sub get_life
 	my ($self, $feature) = @_;
 
 	my $count = @{$feature->vars->{history}};
-	return -1 if $count < 2;
+	PCRD::X::ResultUnavailable->raise if $count < 2;
 
 	my $max = $feature->vars->{history}[-1];
 	my $min = $feature->vars->{history}[0];
-	return -1 if $max <= $min;
+	PCRD::X::ResultUnavailable->raise if $max <= $min;
 
 	# actually, $count - 1 intervals have passed, not $count
 	my $used = $max - $min;

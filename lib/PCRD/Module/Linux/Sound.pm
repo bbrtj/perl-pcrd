@@ -65,7 +65,7 @@ sub get_volume
 					}
 				}
 
-				return -1 unless @volumes > 0;
+				PCRD::X::ResultUnavailable->raise unless @volumes > 0;
 				return sum(@volumes) / @volumes / 100;
 			}
 		);

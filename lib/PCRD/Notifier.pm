@@ -13,7 +13,7 @@ sub new
 	$args{on_error} = sub {
 		my (undef, $message, $name, @details) = @_;
 
-		return if blessed $message && $message->isa('PCRD::X');
+		return if blessed $message && $message->isa('PCRD::X::ExecutionFailed');
 
 		$name = $name ? "[$name] " : '';
 		say "ERROR: $name$message";

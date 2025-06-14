@@ -24,7 +24,7 @@ my $pcrd = PCRDTest->new(
 );
 
 my @cases = (
-	[['Performance', 'swap'], -1],
+	[['Performance', 'swap'], 'result is not available', !!1],
 );
 
 $pcrd->start_cases(\@cases);

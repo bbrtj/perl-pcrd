@@ -9,6 +9,7 @@ use PCRD::X::CheckFailed;
 use PCRD::X::ExecutionFailed;
 use PCRD::X::BadArgument;
 use PCRD::X::BadAction;
+use PCRD::X::ResultUnavailable;
 
 use PCRD::Mite;
 

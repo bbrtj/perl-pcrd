@@ -40,7 +40,7 @@ my $pcrd = PCRDTest->new(
 );
 
 my @cases = (
-	[['Performance', 'cpu'], -1]
+	[['Performance', 'cpu'], 'result is not available', !!1]
 );
 
 $pcrd->start_cases(\@cases);

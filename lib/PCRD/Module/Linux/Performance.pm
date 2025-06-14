@@ -43,9 +43,8 @@ sub get_memory
 		}
 	}
 
-	if (keys %data != 4 || $data{memtotal} == 0) {
-		return -1;
-	}
+	PCRD::X::ResultUnavailable->raise
+		if keys %data != 4 || $data{memtotal} == 0;
 
 	return ($data{memtotal} - $data{memfree} - $data{buffers} - $data{cached}) / $data{memtotal};
 }
@@ -84,9 +83,8 @@ sub get_swap
 		}
 	}
 
-	if (keys %data != 2 || $data{swaptotal} == 0) {
-		return -1;
-	}
+	PCRD::X::ResultUnavailable->raise
+		if keys %data != 2 || $data{swaptotal} == 0;
 
 	return 1 - $data{swapfree} / $data{swaptotal};
 }
@@ -118,9 +116,8 @@ sub get_storage
 		last;
 	}
 
-	if (@cols < 4 || $cols[3] == 0) {
-		return -1;
-	}
+	PCRD::X::ResultUnavailable->raise
+		if @cols < 4 || $cols[3] == 0;
 
 	return $cols[2] / $cols[3];
 }
@@ -174,7 +171,7 @@ sub get_cpu
 	my ($self, $feature) = @_;
 
 	my @hist = @{$feature->vars->{history}};
-	return -1
+	PCRD::X::ResultUnavailable->raise
 		unless @hist > 1;
 
 	my ($base_working, $base_idle) = @{pop @hist};
@@ -186,7 +183,8 @@ sub get_cpu
 	}
 
 	my $denominator = ($total_working + $total_idle);
-	return -1 if $denominator == 0;
+	PCRD::X::ResultUnavailable->raise
+		if $denominator == 0;
 	return $total_working / $denominator;
 }
 
