@@ -4,6 +4,8 @@ use v5.14;
 use strict;
 use Getopt::Long;
 use Pod::Usage;
+use utf8;
+binmode STDOUT, ':encoding(UTF-8)';
 
 my $help = !!0;
 GetOptions(
@@ -19,20 +21,26 @@ sub run_query
 	require PCRD::Client::Query;
 	require IO::Async::Loop;
 	my $loop = IO::Async::Loop->new;
+	my $exit_code = 0;
 	my $client = PCRD::Client::Query->new(
 		on_message => sub {
 			my ($ok, $result) = @_;
 			$loop->stop;
 
-			die "failed to execute: $result\n"
-				unless $ok;
-			say $result;
+			if (!$ok) {
+				say "❎ $result";
+				$exit_code = 1;
+			}
+			else {
+				say "✅ $result";
+			}
 		},
 	);
 
 	$client->start($loop);
 	$client->send($module, $feature, $value);
 	$loop->run;
+	return $exit_code;
 }
 
 my $action = shift;
@@ -48,7 +56,7 @@ elsif ($action) {
 		$action = PCRD->new->find_feature_module($feature);
 	}
 
-	run_query($action, $feature, $value);
+	exit run_query($action, $feature, $value);
 }
 else {
 	die "Need an action\n";
