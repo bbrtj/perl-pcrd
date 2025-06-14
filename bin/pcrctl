@@ -43,6 +43,11 @@ if ($action eq 'config') {
 }
 elsif ($action) {
 	my ($feature, $value) = @ARGV;
+	if ($action eq '_') {
+		require PCRD;
+		$action = PCRD->new->find_feature_module($feature);
+	}
+
 	run_query($action, $feature, $value);
 }
 else {
@@ -89,6 +94,10 @@ Show a complete list of configuration values for enabled modules.
 Runs a query to the daemon, setting or getting one of the values. C<MODULE> and
 C<FEATURE> configs are required, existence of C<VALUE> controls whether the
 setting or getting is performed.
+
+Instead of C<MODULE>, C<_> can be used, which will try to guess C<MODULE> based
+of C<FEATURE>. Execution will fail if C<FEATURE> is not unique within the
+system.
 
 =back
 

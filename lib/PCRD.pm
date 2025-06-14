@@ -236,6 +236,26 @@ sub start
 	$self->listener;
 }
 
+sub find_feature_module
+{
+	my ($self, $feature) = @_;
+	my $modules = $self->modules;
+	my @found;
+
+	foreach my $module (keys %$modules) {
+		if (exists $modules->{$module}->features->{$feature}) {
+			push @found, $module;
+		}
+	}
+
+	die "No modules supply feature '$feature'"
+		if @found == 0;
+	die "Multiple modules supply feature '$feature': " . join ', ', @found
+		if @found > 1;
+
+	return $found[0];
+}
+
 1;
 
 __END__
