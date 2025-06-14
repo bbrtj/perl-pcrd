@@ -8,7 +8,7 @@ use Encode qw(encode decode);
 use constant {
 	SEPARATOR => "\t",
 	SUCCESS => 'ok',
-	ERROR => 'err',
+	ERROR => 'nok',
 	HANDSHAKE => '+',
 	TERMINATOR => "\n---\n",
 	TRUE => 'true',
