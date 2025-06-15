@@ -34,7 +34,7 @@ $pcrd->add_test_timer(
 		on_tick => sub {
 			$charging = !$charging;
 			PCRDFiles->update('charging', get_charging);
-			$pcrd->test_message(['Power', 'charging'], $charging);
+			$pcrd->test_message(['Power', 'charging'], PCRD::Protocol::bool_to_value($charging));
 		},
 	)
 );

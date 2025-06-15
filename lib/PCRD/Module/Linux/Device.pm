@@ -28,7 +28,7 @@ sub get_lid
 	my ($self, $feature) = @_;
 
 	my $liddata = PCRD::Util::slurp_1($feature->vars->{files}[0]);
-	return scalar($liddata =~ /\bopen\b/i);
+	return PCRD::Protocol::bool_to_value(scalar($liddata =~ /\bopen\b/i));
 }
 
 ## SUSPEND

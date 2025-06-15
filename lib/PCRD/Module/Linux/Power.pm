@@ -101,7 +101,7 @@ sub get_charging
 		last if $any_charging;
 	}
 
-	return $any_charging;
+	return PCRD::Protocol::bool_to_value($any_charging);
 }
 
 ### CHARGING THRESHOLD

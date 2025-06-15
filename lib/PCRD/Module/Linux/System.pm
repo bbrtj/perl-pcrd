@@ -3,8 +3,6 @@ package PCRD::Module::Linux::System;
 use v5.14;
 use warnings;
 
-use Time::Piece;
-
 use parent 'PCRD::Module::Any::System';
 
 sub prepare_uptime
