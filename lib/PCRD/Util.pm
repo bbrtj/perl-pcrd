@@ -5,6 +5,7 @@ use warnings;
 use autodie;
 use IPC::Open3;
 use Symbol 'gensym';
+use PCRD::Protocol;
 
 sub slurp
 {
@@ -87,10 +88,9 @@ sub generate_validator
 {
 	my (%args) = @_;
 	require PCRD::X::BadArgument;
-	require PCRD::Protocol;
 
 	my @possible = (
-		($args{truefalse} ? (PCRD::Protocol::TRUE(), PCRD::Protocol::FALSE()) : ()),
+		($args{truefalse} ? (PCRD::Protocol::TRUE, PCRD::Protocol::FALSE) : ()),
 		($args{custom} ? @{$args{custom}} : ()),
 	);
 
@@ -119,14 +119,46 @@ sub generate_validator
 sub execute_if_true
 {
 	my ($value, $sub) = @_;
-	require PCRD::Protocol;
 
 	state $validator = generate_validator(truefalse => 1);
 	$validator->($value);
 
-	return PCRD::Protocol::FALSE() unless PCRD::Protocol::value_to_bool($value);
+	return PCRD::Bool->new(!!0) unless value_to_bool($value);
 	$sub->();
-	return PCRD::Protocol::TRUE();
+	return PCRD::Bool->new(!!1);
+}
+
+sub value_to_bool
+{
+	my ($message) = @_;
+
+	if ($message eq PCRD::Bool->new(!!1)) {
+		return PCRD::Bool->new(!!1);
+	}
+	elsif ($message eq PCRD::Bool->new(!!0)) {
+		return PCRD::Bool->new(!!0);
+	}
+	else {
+		return undef;
+	}
+}
+
+{
+
+	package PCRD::Bool;
+
+	use overload
+		q{bool} => sub { !!${$_[0]} },
+		q{""} => sub { ${$_[0]} ? PCRD::Protocol::TRUE : PCRD::Protocol::FALSE },
+		fallback => 1,
+		;
+
+	sub new
+	{
+		# copy the value here, so we don't reference the value from outside the function
+		my $value = $_[1];
+		return bless \$value, $_[0];
+	}
 }
 
 1;

@@ -29,11 +29,11 @@ my $pcrd = PCRDTest->new(
 
 my @cases = (
 	[['Sound', 'volume'], $volume],
-	[['Sound', 'volume', '1'], PCRD::Protocol::TRUE],
+	[['Sound', 'volume', '1'], PCRD::Bool->new(!!1)],
 	[['Sound', 'volume'], $volume + 0.05],
-	[['Sound', 'volume', '-1'], PCRD::Protocol::TRUE],
+	[['Sound', 'volume', '-1'], PCRD::Bool->new(!!1)],
 	[['Sound', 'volume'], $volume],
-	[['Sound', 'volume', '+1'], PCRD::Protocol::TRUE],
+	[['Sound', 'volume', '+1'], PCRD::Bool->new(!!1)],
 	[['Sound', 'volume'], $volume + 0.05],
 );
 

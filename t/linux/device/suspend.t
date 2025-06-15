@@ -26,7 +26,7 @@ my $pcrd = PCRDTest->new(
 );
 
 my @cases = (
-	[['Device', 'suspend', PCRD::Protocol::TRUE], PCRD::Protocol::TRUE],
+	[['Device', 'suspend', PCRD::Bool->new(!!1)], PCRD::Bool->new(!!1)],
 );
 
 $pcrd->start_cases(\@cases);

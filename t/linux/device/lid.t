@@ -34,7 +34,7 @@ $pcrd->add_test_timer(
 		on_tick => sub {
 			$lid = !$lid;
 			PCRDFiles->update('lid', get_lid);
-			$pcrd->test_message(['Device', 'lid'], PCRD::Protocol::bool_to_value($lid));
+			$pcrd->test_message(['Device', 'lid'], PCRD::Bool->new($lid));
 		},
 	)
 );

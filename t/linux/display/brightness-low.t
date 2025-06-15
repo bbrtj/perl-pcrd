@@ -32,11 +32,11 @@ my $pcrd = PCRDTest->new(
 
 my @cases = (
 	[['Display', 'brightness'], 0],    # actual zero
-	[['Display', 'brightness', 1], PCRD::Protocol::TRUE],
+	[['Display', 'brightness', 1], PCRD::Bool->new(!!1)],
 	[['Display', 'brightness'], 0],    # not a zero, but shows as zero on logarithmic scale
-	[['Display', 'brightness', 1], PCRD::Protocol::TRUE],
+	[['Display', 'brightness', 1], PCRD::Bool->new(!!1)],
 	[['Display', 'brightness'], 0.1],
-	[['Display', 'brightness', 1], PCRD::Protocol::TRUE],
+	[['Display', 'brightness', 1], PCRD::Bool->new(!!1)],
 	[['Display', 'brightness'], 0.15],
 );
 

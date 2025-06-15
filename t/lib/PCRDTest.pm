@@ -148,6 +148,11 @@ sub run_tests
 					if looks_like_number($got);
 			}
 
+			# make sure we treat bools as strings
+			if (ref $expected eq 'PCRD::Bool') {
+				$expected = "$expected";
+			}
+
 			is($got, $expected, $message);
 		}
 	}

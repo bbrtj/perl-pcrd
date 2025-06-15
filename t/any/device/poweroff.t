@@ -30,10 +30,10 @@ my $pcrd = PCRDTest->new(
 );
 
 my @cases = (
-	[['Device', 'poweroff', PCRD::Protocol::TRUE], PCRD::Protocol::TRUE],
-	[['Device', 'poweroff', PCRD::Protocol::FALSE], PCRD::Protocol::FALSE],
-	[['Device', 'reboot', PCRD::Protocol::TRUE], PCRD::Protocol::TRUE],
-	[['Device', 'reboot', PCRD::Protocol::FALSE], PCRD::Protocol::FALSE],
+	[['Device', 'poweroff', PCRD::Bool->new(!!1)], PCRD::Bool->new(!!1)],
+	[['Device', 'poweroff', PCRD::Bool->new(!!0)], PCRD::Bool->new(!!0)],
+	[['Device', 'reboot', PCRD::Bool->new(!!1)], PCRD::Bool->new(!!1)],
+	[['Device', 'reboot', PCRD::Bool->new(!!0)], PCRD::Bool->new(!!0)],
 );
 
 PCRD::Util::slurp_command('t/mock/bin/run-counter', 'reset');

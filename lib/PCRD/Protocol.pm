@@ -93,27 +93,5 @@ sub status_to_bool
 	return $status eq SUCCESS;
 }
 
-sub bool_to_value
-{
-	my ($bool) = @_;
-
-	return $bool ? TRUE : FALSE;
-}
-
-sub value_to_bool
-{
-	my ($message) = @_;
-
-	if ($message eq TRUE) {
-		return !!1;
-	}
-	elsif ($message eq FALSE) {
-		return !!0;
-	}
-	else {
-		return undef;
-	}
-}
-
 1;
 

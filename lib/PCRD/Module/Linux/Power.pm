@@ -101,7 +101,7 @@ sub get_charging
 		last if $any_charging;
 	}
 
-	return PCRD::Protocol::bool_to_value($any_charging);
+	return PCRD::Bool->new($any_charging);
 }
 
 ### CHARGING THRESHOLD
@@ -156,7 +156,7 @@ sub set_charging_threshold
 		PCRD::Util::spew($file, $vals[1]);
 	}
 
-	return PCRD::Protocol::TRUE;
+	return PCRD::Bool->new(!!1);
 }
 
 ### LIFE

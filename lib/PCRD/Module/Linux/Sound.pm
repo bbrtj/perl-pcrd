@@ -81,7 +81,7 @@ sub set_volume
 	$value = "+$value" if $direction == 1;
 
 	return $self->owner->broadcast($self->config->{command}, 'set-sink-volume', '@DEFAULT_SINK@', $value)
-		->then(sub { PCRD::Protocol::TRUE });
+		->then(sub { PCRD::Bool->new(!!1) });
 }
 
 ## MUTE
@@ -100,10 +100,10 @@ sub get_mute
 		->then(
 			sub {
 				foreach my $line (@_) {
-					return PCRD::Protocol::TRUE if $line =~ m/\byes\b/i;
+					return PCRD::Bool->new(!!1) if $line =~ m/\byes\b/i;
 				}
 
-				return PCRD::Protocol::FALSE;
+				return PCRD::Bool->new(!!0);
 			}
 		);
 }
@@ -115,11 +115,11 @@ sub set_mute
 	$validator->($value);
 
 	if ($value ne 'toggle') {
-		$value = PCRD::Protocol::value_to_bool($value);
+		$value = PCRD::Util::value_to_bool($value);
 	}
 
 	return $self->owner->broadcast($self->config->{command}, 'set-sink-mute', '@DEFAULT_SINK@', $value)
-		->then(sub { PCRD::Protocol::TRUE });
+		->then(sub { PCRD::Bool->new(!!1) });
 }
 
 ## MUTE MICROPHONE
@@ -139,10 +139,10 @@ sub get_mute_microphone
 		->then(
 			sub {
 				foreach my $line (@_) {
-					return PCRD::Protocol::TRUE if $line =~ m/\byes\b/i;
+					return PCRD::Bool->new(!!1) if $line =~ m/\byes\b/i;
 				}
 
-				return PCRD::Protocol::FALSE;
+				return PCRD::Bool->new(!!0);
 			}
 		);
 }
@@ -154,11 +154,11 @@ sub set_mute_microphone
 	$validator->($value);
 
 	if ($value ne 'toggle') {
-		$value = PCRD::Protocol::value_to_bool($value);
+		$value = PCRD::Util::value_to_bool($value);
 	}
 
 	return $self->owner->broadcast($self->config->{command}, 'set-source-mute', '@DEFAULT_SOURCE@', $value)
-		->then(sub { PCRD::Protocol::TRUE });
+		->then(sub { PCRD::Bool->new(!!1) });
 }
 
 sub _build_features

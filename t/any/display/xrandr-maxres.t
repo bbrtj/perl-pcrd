@@ -29,17 +29,17 @@ sub get_string
 
 my @cases = (
 	[['Display', 'xrandr'], get_string(1, 0, 1)],
-	[['Display', 'xrandr', 'auto'], PCRD::Protocol::TRUE],
+	[['Display', 'xrandr', 'auto'], PCRD::Bool->new(!!1)],
 	[['Display', 'xrandr'], get_string(1, 0, 0)],
-	[['Display', 'xrandr', 'auto'], PCRD::Protocol::TRUE],
+	[['Display', 'xrandr', 'auto'], PCRD::Bool->new(!!1)],
 	[['Display', 'xrandr'], get_string(1, 1, 0)],
-	[['Display', 'xrandr', 'auto'], PCRD::Protocol::TRUE],
+	[['Display', 'xrandr', 'auto'], PCRD::Bool->new(!!1)],
 	[['Display', 'xrandr'], get_string(1, 0, 0)],
-	[['Display', 'xrandr', 'IP left'], PCRD::Protocol::TRUE],
+	[['Display', 'xrandr', 'IP left'], PCRD::Bool->new(!!1)],
 	[['Display', 'xrandr'], get_string(1, 1, 0)],
-	[['Display', 'xrandr', 'E'], PCRD::Protocol::TRUE],
+	[['Display', 'xrandr', 'E'], PCRD::Bool->new(!!1)],
 	[['Display', 'xrandr'], get_string(0, 1, 0)],
-	[['Display', 'xrandr', 'O'], PCRD::Protocol::TRUE],
+	[['Display', 'xrandr', 'O'], PCRD::Bool->new(!!1)],
 	[['Display', 'xrandr'], get_string(1, 0, 0)],
 );
 

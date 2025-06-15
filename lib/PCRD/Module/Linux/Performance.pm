@@ -232,7 +232,7 @@ sub set_cpu_scaling
 	$feature->vars->{validator}->($value);
 
 	PCRD::Util::spew($feature->vars->{files}[0], $value);
-	return PCRD::Protocol::TRUE;
+	return PCRD::Bool->new(!!1);
 }
 
 ### CPU AUTO SCALING

@@ -169,7 +169,7 @@ sub set_xrandr
 				}
 
 				return $self->owner->broadcast($feature->config->{command}, @cmd)
-				->then(sub { PCRD::Protocol::TRUE });
+				->then(sub { PCRD::Bool->new(!!1) });
 			}
 		);
 }

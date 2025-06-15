@@ -57,7 +57,7 @@ elsif ($ARGV[0] eq 'set-sink-mute' && $ARGV[1] eq '@DEFAULT_SINK@' && defined $A
 		$mute = !$mute;
 	}
 	else {
-		$mute = !!$arg;
+		$mute = !!$arg && $arg ne 'false';
 	}
 	write_state;
 }
@@ -70,7 +70,7 @@ elsif ($ARGV[0] eq 'set-source-mute' && $ARGV[1] eq '@DEFAULT_SOURCE@' && define
 		$mute_mic = !$mute_mic;
 	}
 	else {
-		$mute_mic = !!$arg;
+		$mute_mic = !!$arg && $arg ne 'false';
 	}
 	write_state;
 }

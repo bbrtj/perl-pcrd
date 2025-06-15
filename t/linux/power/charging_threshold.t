@@ -39,7 +39,7 @@ $pcrd->add_test_timer(
 			$pcrd->test_message(['Power', 'charging_threshold'], "$start-$stop");
 			--$start;
 			++$stop;
-			$pcrd->test_message(['Power', 'charging_threshold', "$start-$stop"], PCRD::Protocol::TRUE);
+			$pcrd->test_message(['Power', 'charging_threshold', "$start-$stop"], PCRD::Bool->new(!!1));
 		},
 	)
 );
