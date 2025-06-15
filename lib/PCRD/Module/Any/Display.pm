@@ -136,8 +136,8 @@ sub set_xrandr
 				my %command;
 				foreach my $flag (split //, $mode) {
 					if ($flag eq 'I') {
-						die 'side is required for I' unless $side;
-						die 'no external display is connected' unless $external;
+						PCRD::X::BadArgument->raise('side is required for I') unless $side;
+						PCRD::X::ExecutionFailed->raise('no external display is connected') unless $external;
 						push @{$command{$external}}, '--mode', $available{$external}, "--$side", $base;
 					}
 					elsif ($flag eq 'O') {
@@ -146,11 +146,11 @@ sub set_xrandr
 						push @{$command{$base}}, '--mode', $available{$base}, '--primary';
 					}
 					elsif ($flag eq 'P') {
-						die 'no external display is connected' unless $external;
+						PCRD::X::ExecutionFailed->raise('no external display is connected') unless $external;
 						push @{$command{$external}}, '--primary';
 					}
 					elsif ($flag eq 'E') {
-						die 'no external display is connected' unless $external;
+						PCRD::X::ExecutionFailed->raise('no external display is connected') unless $external;
 						push @{$command{$base}}, '--off';
 					}
 				}
