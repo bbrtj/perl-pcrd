@@ -4,12 +4,18 @@ use v5.14;
 use strict;
 use Getopt::Long;
 use Pod::Usage;
+use PCRD;
+
 use utf8;
 binmode STDOUT, ':encoding(UTF-8)';
 
 my $help = !!0;
+my $list = !!0;
+my $config = !!0;
 GetOptions(
 	'h|help' => \$help,
+	'l|list' => \$list,
+	'c|config' => \$config,
 ) or pod2usage(2);
 
 pod2usage(-exitval => 0, -verbose => 2, -noperldoc => 1) if $help;
@@ -45,21 +51,31 @@ sub run_query
 
 my $action = shift;
 
-if ($action eq 'config') {
-	require PCRD;
+if ($config) {
 	say PCRD->new->explain_config;
 }
-elsif ($action) {
-	my ($feature, $value) = @ARGV;
-	if ($action eq '_') {
-		require PCRD;
-		$action = PCRD->new->find_feature_module($feature);
+if ($list) {
+	my $pcrd = PCRD->new;
+	my $modules = $pcrd->modules;
+	foreach my $module (keys %$modules) {
+		say $module;
+		foreach my $feature (keys %{$modules->{$module}->features}) {
+			say "  $feature";
+		}
 	}
-
-	exit run_query($action, $feature, $value);
 }
 else {
-	die "Need an action\n";
+	if ($action) {
+		my ($feature, $value) = @ARGV;
+		if ($action eq '_') {
+			$action = PCRD->new->find_feature_module($feature);
+		}
+
+		exit run_query($action, $feature, $value);
+	}
+	else {
+		die "Need an action\n";
+	}
 }
 
 __END__
@@ -74,9 +90,10 @@ pcrctl [options] [action]
 
 	Options:
 		--help                          show help
+		--list                          shows all enabled modules and their features
+		--config                        shows possible configuration values
 
 	Actions:
-		config                          shows possible configuration values
 		MODULE FEATURE [VALUE]          queries one of the daemon's features
 
 =head1 OPTIONS
@@ -87,15 +104,19 @@ pcrctl [options] [action]
 
 Print a brief help message and exits.
 
+=item B<--config>
+
+Show a complete list of configuration values for enabled modules.
+
+=item B<--list>
+
+Show a list of modules and their features which can be called.
+
 =back
 
 =head1 ACTIONS
 
 =over
-
-=item B<config>
-
-Show a complete list of configuration values for enabled modules.
 
 =item B<MODULE>
 

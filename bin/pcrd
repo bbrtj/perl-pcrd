@@ -5,6 +5,9 @@ use strict;
 use Getopt::Long;
 use Pod::Usage;
 use IO::Async::Loop;
+use PCRD;
+use PCRD::Client::UserAgent;
+use POSIX ();
 
 my $help = !!0;
 my $logs = '/var/log/pcrd.log';
@@ -19,7 +22,6 @@ my $loop = IO::Async::Loop->new;
 
 sub run_user_agent
 {
-	require PCRD::Client::UserAgent;
 	my $ua = PCRD::Client::UserAgent->new;
 	$ua->start($loop);
 	$loop->run;
@@ -27,13 +29,10 @@ sub run_user_agent
 
 sub run_daemon
 {
-	require PCRD;
-
 	my $forked = fork;
 	die "could not fork" unless defined $forked;
 	exit if $forked;
 
-	require POSIX;
 	POSIX::setsid() != -1 or die "Can't start a new session: $!";
 	rename $logs, "$logs.old";
 	open STDOUT, '>', $logs;
@@ -48,7 +47,6 @@ sub run_daemon
 
 sub run_init
 {
-	require PCRD;
 	PCRD->new(load_config => !!0)->dump_config;
 	say 'initialized';
 }
