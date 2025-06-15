@@ -69,7 +69,7 @@ sub get_ac
 		last if $any_ac;
 	}
 
-	return $any_ac;
+	return PCRD::Bool->new($any_ac);
 }
 
 ### CHARGING

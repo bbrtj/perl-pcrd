@@ -33,7 +33,7 @@ $pcrd->add_test_timer(
 		on_tick => sub {
 			$ac = ($ac + 1) % 2;
 			PCRDFiles->update('ac', $ac);
-			$pcrd->test_message(['Power', 'ac'], !!$ac);
+			$pcrd->test_message(['Power', 'ac'], PCRD::Bool->new($ac));
 		},
 	)
 );
