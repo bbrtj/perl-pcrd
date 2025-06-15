@@ -2,6 +2,20 @@ Revision history for PCRD
 
 {{$NEXT}}
 
+1.002 - 2025-06-15
+	- Use true/false values in protocol instead of 1/0
+	- All features now use true/false values on read where applicable
+	- All features now refuse to do anything on write when false is passed
+	- Features no longer return -1 if the result is not available, they fail instead
+	- Features now do better job at validating their input
+	- Added exceptions
+	- Script pcrctl interface has been slightly modified
+	- pcrctl can now guess the module if the feature name is unique
+	- pcrctl can now show a complete list of enabled features
+	- pcrctl now uses --config instead of config
+	- Protocol failed status value changed from 'err' to 'nok'
+	- Minor tweaks to feature preparation / checking / initialization procedure
+
 1.001 - 2025-06-11
 	- Fix display brightness becoming stuck on low values
 	- Fix unicode handling in network communication
