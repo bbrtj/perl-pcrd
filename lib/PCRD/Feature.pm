@@ -151,30 +151,35 @@ sub check
 		return;
 	}
 
-	if (!$self->needs_agent xor $args{agent_present}) {
-		my $check_method = $self->owner->can("check_$self->{name}");
-
-		if ($check_method) {
-			my $f = Future->wrap($self->owner->$check_method($self))
-				->retain
-				->on_done(
-					sub {
-						my $res = shift;
-
-						$self->_set_functional(!defined $res);
-						PCRD::X::CheckFailed->raise($res->[0], $self, $res->[1])
-						if !$self->functional && !$args{silent};
-					},
-				);
-
-			$self->owner->notifier->adopt_future($f);
-		}
-		else {
-			$self->_set_functional(!!1);
+	if ($self->needs_agent) {
+		if (!$args{agent_present}) {
+			$self->_set_functional(!!0);
+			return;
 		}
 	}
-	elsif ($self->needs_agent) {
-		$self->_set_functional(!!0);
+	else {
+		return if defined $args{agent_present};
+	}
+
+	my $check_method = $self->owner->can("check_$self->{name}");
+
+	if ($check_method) {
+		my $f = Future->wrap($self->owner->$check_method($self))
+			->retain
+			->on_done(
+				sub {
+					my $res = shift;
+
+					$self->_set_functional(!defined $res);
+					PCRD::X::CheckFailed->raise($res->[0], $self, $res->[1])
+					if !$self->functional && !$args{silent};
+				},
+			);
+
+		$self->owner->notifier->adopt_future($f);
+	}
+	else {
+		$self->_set_functional(!!1);
 	}
 }
 
@@ -186,13 +191,16 @@ sub init
 	return unless $self->functional;
 
 	my $init_method = "init_$self->{name}";
+	my $status = 1;
 
-	if (!$self->needs_agent xor $args{agent_present}) {
-		$self->owner->$init_method($self, 1);
+	if ($self->needs_agent) {
+		$status = !!$args{agent_present};
 	}
-	elsif ($self->needs_agent && defined $args{agent_present}) {
-		$self->owner->$init_method($self, 0);
+	else {
+		return if defined $args{agent_present};
 	}
+
+	$self->owner->$init_method($self, $status);
 }
 
 sub add_execute_hook

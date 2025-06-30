@@ -167,6 +167,7 @@ sub prepare_life
 
 	$feature->vars->{files} = [glob $feature->config->{pattern}];
 	$feature->vars->{history_size} = int($feature->config->{measurement_window} * 60 / $self->owner->probe_interval);
+	$feature->vars->{history} = [];
 }
 
 sub check_life
@@ -182,7 +183,6 @@ sub init_life
 {
 	my ($self, $feature) = @_;
 
-	$feature->vars->{history} //= [];
 	my $timer = IO::Async::Timer::Periodic->new(
 		interval => $self->owner->probe_interval,
 		reschedule => 'skip',
@@ -190,7 +190,7 @@ sub init_life
 			unshift @{$feature->vars->{history}},
 				sum map { PCRD::Util::slurp_1($_) } @{$feature->vars->{files}};
 			splice @{$feature->vars->{history}}, $feature->vars->{history_size};
-		},
+		}
 	);
 
 	$timer->start;

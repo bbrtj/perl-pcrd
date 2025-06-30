@@ -1,6 +1,7 @@
 Revision history for PCRD
 
 {{$NEXT}}
+	- Fix features which do not need user agent initializing more than once
 
 1.002 - 2025-06-15
 	- Use true/false values in protocol instead of 1/0
