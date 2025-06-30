@@ -44,7 +44,7 @@ sub _build_features
 			config => {
 				measurement_window => {
 					desc => 'time window (in minutes) which will be used for the calculation',
-					value => 5,
+					value => 10,
 				},
 			},
 		},

@@ -2,6 +2,7 @@ Revision history for PCRD
 
 {{$NEXT}}
 	- Fix features which do not need user agent initializing more than once
+	- Increase default measurement window of battery life to 10 minutes
 
 1.002 - 2025-06-15
 	- Use true/false values in protocol instead of 1/0
