@@ -1,6 +1,8 @@
 Revision history for PCRD
 
 {{$NEXT}}
+
+1.003 - 2025-06-30
 	- Fix features which do not need user agent initializing more than once
 	- Fix handling of unicode characters in read files and executed commands
 	- Increase default measurement window of battery life to 10 minutes
