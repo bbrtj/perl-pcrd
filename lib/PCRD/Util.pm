@@ -10,7 +10,7 @@ use PCRD::Protocol;
 sub slurp
 {
 	my ($file) = @_;
-	open my $fh, '<', $file;
+	open my $fh, '<:encoding(UTF-8)', $file;
 
 	return readline $fh;
 }
@@ -20,6 +20,9 @@ sub slurp_command
 	my (@command) = @_;
 
 	my $pid = open3(undef, my $output, my $error = gensym, @command);
+
+	binmode $output, ':encoding(UTF-8)';
+	binmode $error, ':encoding(UTF-8)';
 
 	my @contents = readline $output;
 	my $errors = do {
@@ -37,7 +40,7 @@ sub slurp_command
 sub spew
 {
 	my ($file, $content) = @_;
-	open my $fh, '>', $file;
+	open my $fh, '>:encoding(UTF-8)', $file;
 
 	print {$fh} $content;
 }
@@ -45,7 +48,7 @@ sub spew
 sub slurp_1
 {
 	my ($file) = @_;
-	open my $fh, '<', $file;
+	open my $fh, '<:encoding(UTF-8)', $file;
 
 	my $value = readline $fh;
 	chomp $value;

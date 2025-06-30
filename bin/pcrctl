@@ -8,6 +8,7 @@ use PCRD;
 
 use utf8;
 binmode STDOUT, ':encoding(UTF-8)';
+binmode STDERR, ':encoding(UTF-8)';
 
 my $help = !!0;
 my $list = !!0;
