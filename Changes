@@ -1,6 +1,8 @@
 Revision history for PCRD
 
 {{$NEXT}}
+
+1.004 - 2025-12-13
 	- Bad handshakes no longer cause a daemon to hang
 	- Added a pcrctl_fast program (not compiled by default)
 
