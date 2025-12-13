@@ -196,7 +196,7 @@ sub start
 {
 	my ($self, $timeout, $finalization_timeout) = @_;
 	$timeout //= 0.5;
-	$finalization_timeout //= 0.05;
+	$finalization_timeout //= 0.1;
 
 	if (@{$self->timers}) {
 		$timeout += 0.05;

@@ -44,7 +44,7 @@ my @cases = (
 
 # perl script is called multiple times, so this needs extra finalization time
 # window
-$pcrd->start_cases(\@cases, 0.07, 0.2);
+$pcrd->start_cases(\@cases, 0.2, 0.5);
 $pcrd->run_tests;
 
 done_testing;
