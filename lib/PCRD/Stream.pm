@@ -82,7 +82,7 @@ sub handle_message
 
 	my $type = $self->_client_type;
 	if ($type == TYPE_NONE) {
-		$self->_handle_handshake($buffref);
+		return unless $self->_handle_handshake($buffref);
 
 		# other types may happen after the handshake, but within the same message
 		$self->handle_message($stream, $buffref, $eof)
@@ -100,19 +100,22 @@ sub _handle_handshake
 {
 	my ($self, $buffref) = @_;
 
-	while (my $handshake = PCRD::Protocol::extract_handshake_message($buffref)) {
-		if ($handshake eq 'user_agent') {
-			say 'new user agent';
-			$self->_set_client_type(TYPE_USER_AGENT);
-			$self->owner->register_user_agent($self);
-		}
-		elsif ($handshake eq 'query') {
-			$self->_set_client_type(TYPE_QUERY);
-		}
-		else {
-			$self->send_status(!!0, "unknown handshake $handshake");
-		}
+	my $handshake = PCRD::Protocol::extract_handshake_message($buffref) // '';
+
+	if ($handshake eq 'user_agent') {
+		say 'new user agent';
+		$self->_set_client_type(TYPE_USER_AGENT);
+		$self->owner->register_user_agent($self);
 	}
+	elsif ($handshake eq 'query') {
+		$self->_set_client_type(TYPE_QUERY);
+	}
+	else {
+		$self->send_status(!!0, "unknown handshake $handshake");
+		return !!0;
+	}
+
+	return !!1;
 }
 
 sub _handle_query
