@@ -2,6 +2,7 @@ Revision history for PCRD
 
 {{$NEXT}}
 	- Bad handshakes no longer cause a daemon to hang
+	- Added a pcrctl_fast program (not compiled by default)
 
 1.003 - 2025-06-30
 	- Fix features which do not need user agent initializing more than once

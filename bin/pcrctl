@@ -136,6 +136,10 @@ system.
 This program is a pcrd (Parameters Control and Reporting Daemon) control tool.
 It can be used to query its modules.
 
-For low latency usage, see pcrctl_fast program in the PCRD directory (must be
-compiled separately).
+For low latency usage, see C<src/pcrctl_fast.pas> program in the PCRD
+distribution directory (must be compiled separately). It only contains the
+standard C<MODULE FEATURE VALUE> action, and only connects with
+C</var/run/pcrd.sock> (right now), but it executes around 10 times faster
+thanks to being a compiled program (no need to interpret source code each
+time). It can be compiled using Free Pascal Compiler.
 
