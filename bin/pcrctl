@@ -5,6 +5,8 @@ use strict;
 use Getopt::Long;
 use Pod::Usage;
 use PCRD;
+use PCRD::Client::Query;
+use IO::Async::Loop;
 
 use utf8;
 binmode STDOUT, ':encoding(UTF-8)';
@@ -25,8 +27,6 @@ sub run_query
 {
 	my ($module, $feature, $value) = @_;
 
-	require PCRD::Client::Query;
-	require IO::Async::Loop;
 	my $loop = IO::Async::Loop->new;
 	my $exit_code = 0;
 	my $client = PCRD::Client::Query->new(
@@ -135,4 +135,7 @@ system.
 
 This program is a pcrd (Parameters Control and Reporting Daemon) control tool.
 It can be used to query its modules.
+
+For low latency usage, see pcrctl_fast program in the PCRD directory (must be
+compiled separately).
 
