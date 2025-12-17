@@ -7,6 +7,8 @@ use IPC::Open3;
 use Symbol 'gensym';
 use PCRD::Protocol;
 
+use constant DEBUG => $ENV{PCRD_DEBUG};
+
 sub slurp
 {
 	my ($file) = @_;

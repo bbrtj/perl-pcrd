@@ -1,6 +1,7 @@
 Revision history for PCRD
 
 {{$NEXT}}
+	- Extra debugging can now be enabled using PCRD_DEBUG flag
 
 1.004 - 2025-12-13
 	- Bad handshakes no longer cause a daemon to hang

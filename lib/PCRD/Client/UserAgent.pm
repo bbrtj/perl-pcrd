@@ -31,6 +31,12 @@ sub _build_on_message
 			@lines = PCRD::Util::slurp_command(@parts);
 		};
 
+		if (PCRD::Util::DEBUG) {
+			my $command = join ' ', @parts;
+			my $result = join '', @lines;
+			warn "command <$command>, output: $result\n";
+		}
+
 		my @message = $ex
 			? (PCRD::Protocol::bool_to_status(0), $id, $ex)
 			: (PCRD::Protocol::bool_to_status(1), $id, @lines)
