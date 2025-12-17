@@ -3,7 +3,7 @@ program pcrctl_fast;
 {$mode objfpc}{$H+}{$J-}
 
 uses
-  SysUtils, Sockets, BaseUnix;
+  SysUtils, Sockets, BaseUnix, Classes, RegExpr;
 
 { Need to be kept in sync with PCRD::Protocol }
 const
@@ -95,6 +95,38 @@ begin
 		result.Value := NextParam();
 end;
 
+function GetSocketPath(): String;
+var
+	LPcrdPath: String;
+	LConfig: TStringList;
+	LRegex: TRegExpr;
+	I: Integer;
+begin
+	LPcrdPath := GetEnvironmentVariable('PCRD_PATH');
+	if LPcrdPath = '' then
+		LPcrdPath := '/etc/pcrd';
+
+	result := '/var/run/pcrd.sock';
+
+	LConfig := TStringList.Create;
+	LRegex := TRegExpr.Create;
+	try
+		LConfig.LoadFromFile(LPcrdPath + '/pcrd.conf');
+		LRegex.Expression := '^ \s* ([\w.]+) \s*=\s* (.+?) \s* $';
+		LRegex.ModifierX := True;
+		LRegex.Compile;
+		for I := 0 to LConfig.Count - 1 do begin
+			if not LRegex.Exec(LConfig[I]) then continue;
+			if LRegex.Match[1] <> 'socket.file' then continue;
+			result := LRegex.Match[2];
+			break;
+		end;
+	finally
+		LConfig.Free;
+		LRegex.Free;
+	end;
+end;
+
 function SocketConnect(Address: String): TSocket;
 var
 	LAddr: TUnixSockAddr;
@@ -103,18 +135,11 @@ begin
 	LAddr.family := AF_UNIX;
 	StrPCopy(@LAddr.path, Address);
 
-	try
-		if result = -1 then
-			raise ESocket.Create('Error creating socket');
+	if result = -1 then
+		raise ESocket.Create('Error creating socket');
 
-		if fpConnect(result, @LAddr, SizeOf(LAddr)) = -1 then
-			raise ESocket.Create('Error connecting');
-	except
-		on Ex: ESocket do begin
-			fpClose(result);
-			raise Ex;
-		end;
-	end;
+	if fpConnect(result, @LAddr, SizeOf(LAddr)) = -1 then
+		raise ESocket.Create('Error connecting to ' + Address);
 end;
 
 procedure SendQuery(Socket: TSocket; Args: TProgramArgs);
@@ -139,7 +164,7 @@ end;
 
 function CheckResponse(Socket: TSocket): Boolean;
 var
-	LBuffer: Array[0 .. 4000] of Char;
+	LBuffer: Array[0 .. 1000] of Char;
 	LData: String;
 	LRead: Int64;
 begin
@@ -156,7 +181,7 @@ var
 	LSock: TSocket;
 	LRes: Boolean;
 begin
-	LSock := SocketConnect('/var/run/pcrd.sock');
+	LSock := SocketConnect(GetSocketPath);
 	LRes := False;
 
 	try try

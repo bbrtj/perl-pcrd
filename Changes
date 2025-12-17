@@ -3,6 +3,7 @@ Revision history for PCRD
 {{$NEXT}}
 	- Extra STDERR debugging can now be enabled using PCRD_DEBUG flag
 	- Some language-sensitive commands are now handled properly
+	- pcrctl_fast now reads config to determine custom socket file location
 
 1.004 - 2025-12-13
 	- Bad handshakes no longer cause a daemon to hang
