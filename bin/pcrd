@@ -11,6 +11,7 @@ use POSIX ();
 
 binmode STDOUT, ':encoding(UTF-8)';
 binmode STDERR, ':encoding(UTF-8)';
+$ENV{LANG} = 'en_US.UTF8';
 
 my $help = !!0;
 my $logs = '/var/log/pcrd.log';
